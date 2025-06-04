@@ -12,9 +12,9 @@
             <Duration>00:00:30</Duration>
             <AdParameters><![CDATA[
               {
-                "mediaFiles": [{"uri": "video/my-ad-video.mp4"}],
+                "mediaFiles": "https://github.com/adeshsarwan/vpaid/blob/9294e1742f8ffd30a4bd2898e69a4f58b7ccfc53/video/my-ad-video.mp4",
                 "clickThroughUrl": "https://mainlanding.example.com",
-                "imageUrl": "images/side-banner.jpg",
+                "imageUrl": "https://github.com/adeshsarwan/vpaid/blob/9294e1742f8ffd30a4bd2898e69a4f58b7ccfc53/images/side-banner.jpg",
                 "clickTrackers": [
                   "https://tracker1.example.com/click",
                   "https://partner-ads.com/clicktrack",
@@ -30,7 +30,7 @@
             </VideoClicks>
             <MediaFiles>
               <MediaFile delivery="progressive" type="application/javascript" apiFramework="VPAID" width="640" height="360">
-                <![CDATA[vpaid-creative.js]]>
+                <![CDATA[https://github.com/adeshsarwan/vpaid/blob/9294e1742f8ffd30a4bd2898e69a4f58b7ccfc53/vpaid-creative.js]]>
               </MediaFile>
             </MediaFiles>
           </Linear>
