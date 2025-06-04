@@ -1,0 +1,23 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<VAST version="3.0">
+  <Ad id="custom-vpaid">
+    <InLine>
+      <AdSystem>CustomVPAID</AdSystem>
+      <AdTitle>Interactive Canvas VPAID</AdTitle>
+      <Impression><![CDATA[https://tracker.example.com/impression]]></Impression>
+      <Creatives>
+        <Creative>
+          <Linear>
+            <Duration>00:00:30</Duration>
+            <MediaFiles>
+              <MediaFile delivery="progressive" type="application/javascript" apiFramework="VPAID" width="640" height="360">
+                <![CDATA[vpaid-custom.js]]>
+              </MediaFile>
+            </MediaFiles>
+          </Linear>
+        </Creative>
+      </Creatives>
+    </InLine>
+  </Ad>
+</VAST>
