@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VAST version="3.0">
+  <Ad id="12345" sequence="1">
+    <InLine>
+      <AdSystem>SampleSystem</AdSystem>
+      <AdTitle>Sample VPAID Ad</AdTitle>
+      <Impression><![CDATA[https://tracker1.example.com/impression]]></Impression>
+      <Impression><![CDATA[https://tracker2.adpartner.com/imp]]></Impression>
+      <Creatives>
+        <Creative id="1" sequence="1">
+          <Linear>
+            <Duration>00:00:30</Duration>
+            <AdParameters><![CDATA[
+              {
+                "mediaFiles": [{"uri": "video/my-ad-video.mp4"}],
+                "clickThroughUrl": "https://mainlanding.example.com",
+                "imageUrl": "images/side-banner.jpg",
+                "clickTrackers": [
+                  "https://tracker1.example.com/click",
+                  "https://partner-ads.com/clicktrack",
+                  "https://analytics.yourdomain.com/pixel/click"
+                ]
+              }
+            ]]></AdParameters>
+            <VideoClicks>
+              <ClickThrough><![CDATA[https://mainlanding.example.com]]></ClickThrough>
+              <ClickTracking><![CDATA[https://tracker1.example.com/click]]></ClickTracking>
+              <ClickTracking><![CDATA[https://partner-ads.com/clicktrack]]></ClickTracking>
+              <ClickTracking><![CDATA[https://analytics.yourdomain.com/pixel/click]]></ClickTracking>
+            </VideoClicks>
+            <MediaFiles>
+              <MediaFile delivery="progressive" type="application/javascript" apiFramework="VPAID" width="640" height="360">
+                <![CDATA[vpaid-creative.js]]>
+              </MediaFile>
+            </MediaFiles>
+          </Linear>
+        </Creative>
+      </Creatives>
+    </InLine>
+  </Ad>
+</VAST>
