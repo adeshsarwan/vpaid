@@ -63,7 +63,7 @@ function getVPAIDAd() {
       image.style.top = '0';
       image.style.left = '0';
       image.style.height = '100%';
-      image.style.width = '10%';
+      image.style.width = '20%';
       image.style.objectFit = 'cover';
       image.style.zIndex = '10';
       adContainer.appendChild(image);
