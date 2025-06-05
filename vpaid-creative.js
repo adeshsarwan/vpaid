@@ -1,5 +1,10 @@
 function getVPAIDAd() {
-  let adContainer, video, clickThrough, clickTrackers = [];
+  let adContainer, video, clickThrough = '', clickTrackers = [], _volume = 1;
+  let events = {};
+
+  function callEvent(name) {
+    if (typeof events[name] === 'function') events[name]();
+  }
 
   return {
     handshakeVersion: function(version) {
@@ -12,11 +17,15 @@ function getVPAIDAd() {
       video = environmentVars.videoSlot;
       adContainer = environmentVars.slot;
 
-      if (video) {
-        video.src = adParams.mediaFiles?.[0]?.uri || '';
-        video.load();
-        video.onended = () => this.stopAd();
+      if (!video || !adParams.mediaFiles || !adParams.mediaFiles[0]?.uri) {
+        callEvent('AdError');
+        return;
       }
+
+      video.src = adParams.mediaFiles[0].uri;
+      video.load();
+      video.onended = () => this.stopAd();
+      video.onplay = () => callEvent('AdImpression');
 
       const visitBtn = document.createElement('button');
       visitBtn.textContent = 'Visit Site';
@@ -26,21 +35,42 @@ function getVPAIDAd() {
       };
       adContainer.appendChild(visitBtn);
 
-      this._callEvent('AdLoaded');
+      callEvent('AdLoaded');
     },
     startAd: function() {
-      video.play();
-      this._callEvent('AdStarted');
+      video.play().then(() => callEvent('AdStarted')).catch(() => callEvent('AdError'));
     },
     stopAd: function() {
-      this._callEvent('AdStopped');
+      callEvent('AdStopped');
     },
-    _events: {},
+    pauseAd: function() {
+      video?.pause();
+      callEvent('AdPaused');
+    },
+    resumeAd: function() {
+      video?.play();
+      callEvent('AdPlaying');
+    },
+    expandAd: function() {},
+    collapseAd: function() {},
+    skipAd: function() {},
+    resizeAd: function(width, height, viewMode) {},
+    getAdLinear: function() { return true; },
+    getAdDuration: function() { return video?.duration || 0; },
+    getAdRemainingTime: function() { return video ? video.duration - video.currentTime : 0; },
+    getAdVolume: function() { return video ? video.volume : _volume; },
+    setAdVolume: function(val) {
+      _volume = val;
+      if (video) video.volume = val;
+    },
+    getAdSkippableState: function() { return false; },
+    getAdExpanded: function() { return false; },
+    getAdIcons: function() { return false; },
     subscribe: function(callback, eventName) {
-      this._events[eventName] = callback;
+      events[eventName] = callback;
     },
-    _callEvent: function(name) {
-      if (typeof this._events[name] === 'function') this._events[name]();
+    unsubscribe: function(eventName) {
+      delete events[eventName];
     }
   };
 }
