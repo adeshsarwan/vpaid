@@ -84,18 +84,20 @@ function getVPAIDAd() {
         imageLink.style.left = '0';
       }, 100);
 
-      // Animate video resizing
-      video.style.position = 'absolute';
-      video.style.left = '0';
-      video.style.top = '0';
-      video.style.width = '100%';
-      video.style.height = '100%';
-      video.style.transition = 'left 1s ease, width 1s ease';
+      // Animate video resizing safely
+      if (video && video.style) {
+        video.style.position = 'absolute';
+        video.style.left = '0';
+        video.style.top = '0';
+        video.style.width = '100%';
+        video.style.height = '100%';
+        video.style.transition = 'left 1s ease, width 1s ease';
 
-      setTimeout(() => {
-        video.style.left = '20%';
-        video.style.width = '80%';
-      }, 100);
+        setTimeout(() => {
+          video.style.left = '20%';
+          video.style.width = '80%';
+        }, 100);
+      }
 
       // Click button overlay
       const visitBtn = document.createElement('button');
