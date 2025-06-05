@@ -119,28 +119,9 @@ function getVPAIDAd() {
         video.style.height = '80%';
         video.style.boxSizing = 'border-box';
         video.style.transition = 'all 1s ease';
+        video.style.zIndex = '5';
+        adContainer.appendChild(video);
       }
-
-      // Click button overlay
-      const visitBtn = document.createElement('button');
-      visitBtn.textContent = 'Visit Site';
-      visitBtn.style.position = 'absolute';
-      visitBtn.style.bottom = '10px';
-      visitBtn.style.right = '10px';
-      visitBtn.style.zIndex = '20';
-      visitBtn.style.background = 'transparent';
-      visitBtn.style.border = '1px solid white';
-      visitBtn.style.color = 'white';
-      visitBtn.style.padding = '8px 12px';
-      visitBtn.style.cursor = 'pointer';
-      visitBtn.style.fontSize = '14px';
-      visitBtn.onmouseover = () => visitBtn.style.opacity = '0.7';
-      visitBtn.onmouseout = () => visitBtn.style.opacity = '1';
-      visitBtn.onclick = () => {
-        clickTrackers.forEach(url => new Image().src = url);
-        window.open(clickThrough, '_blank');
-      };
-      adContainer.appendChild(visitBtn);
 
       callEvent('AdLoaded');
     },
