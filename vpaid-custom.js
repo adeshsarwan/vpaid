@@ -110,13 +110,14 @@ function getVPAIDAd() {
         bottomBannerLink.style.bottom = '0';
       }, 100);
 
-      // Animate video into top-right quadrant
+      // Animate video into top-right quadrant, accounting for bottom banner
       if (video && video.style) {
         video.style.position = 'absolute';
         video.style.top = '0';
         video.style.left = '20%';
         video.style.width = '80%';
         video.style.height = '80%';
+        video.style.boxSizing = 'border-box';
         video.style.transition = 'all 1s ease';
       }
 
