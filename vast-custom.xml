@@ -24,7 +24,7 @@
                          apiFramework="VPAID"
                          width="640"
                          height="360">
-                <![CDATA[https://vast.thebesads.com/vpaid-creative.js]]>
+                <![CDATA[https://vast.thebesads.com/vpaid-custom.js]]>
               </MediaFile>
             </MediaFiles>
 
