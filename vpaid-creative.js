@@ -63,9 +63,10 @@ function getVPAIDAd() {
       image.style.marginRight = '10px';
       wrapper.appendChild(image);
 
-      // Place video next to image
-      video.style.flex = '1';
-      wrapper.appendChild(video);
+      const videoWrapper = document.createElement('div');
+      videoWrapper.style.flex = '1';
+      videoWrapper.appendChild(video);
+      wrapper.appendChild(videoWrapper);
 
       // Click button
       const visitBtn = document.createElement('button');
