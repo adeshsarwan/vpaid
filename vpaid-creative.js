@@ -1,9 +1,32 @@
 function getVPAIDAd() {
   let adContainer, video, clickThrough = '', clickTrackers = [], _volume = 1;
-  let events = {};
+  let events = {}, quartileEventsFired = {25: false, 50: false, 75: false};
 
   function callEvent(name) {
     if (typeof events[name] === 'function') events[name]();
+  }
+
+  function trackQuartiles() {
+    if (!video || isNaN(video.duration)) return;
+
+    const checkQuartiles = () => {
+      const currentTime = video.currentTime;
+      const duration = video.duration;
+      if (!quartileEventsFired[25] && currentTime >= duration * 0.25) {
+        callEvent('AdVideoFirstQuartile');
+        quartileEventsFired[25] = true;
+      }
+      if (!quartileEventsFired[50] && currentTime >= duration * 0.5) {
+        callEvent('AdVideoMidpoint');
+        quartileEventsFired[50] = true;
+      }
+      if (!quartileEventsFired[75] && currentTime >= duration * 0.75) {
+        callEvent('AdVideoThirdQuartile');
+        quartileEventsFired[75] = true;
+      }
+    };
+
+    video.addEventListener('timeupdate', checkQuartiles);
   }
 
   return {
@@ -22,23 +45,46 @@ function getVPAIDAd() {
         return;
       }
 
+      // Set up the video
       video.src = adParams.mediaFiles[0].uri;
       video.load();
       video.onended = () => this.stopAd();
       video.onplay = () => callEvent('AdImpression');
 
+      // Create a container to hold both the image and the video
+      const wrapper = document.createElement('div');
+      wrapper.style.display = 'flex';
+      wrapper.style.alignItems = 'center';
+      wrapper.style.height = height + 'px';
+
+      const image = document.createElement('img');
+      image.src = 'https://vast.thebesads.com/images/side-banner.jpg';
+      image.style.height = '100%';
+      image.style.marginRight = '10px';
+      wrapper.appendChild(image);
+
+      // Place video next to image
+      video.style.flex = '1';
+      wrapper.appendChild(video);
+
+      // Click button
       const visitBtn = document.createElement('button');
       visitBtn.textContent = 'Visit Site';
       visitBtn.onclick = () => {
         clickTrackers.forEach(url => new Image().src = url);
         window.open(clickThrough, '_blank');
       };
-      adContainer.appendChild(visitBtn);
+      wrapper.appendChild(visitBtn);
+
+      adContainer.appendChild(wrapper);
 
       callEvent('AdLoaded');
     },
     startAd: function() {
-      video.play().then(() => callEvent('AdStarted')).catch(() => callEvent('AdError'));
+      video.play().then(() => {
+        callEvent('AdStarted');
+        trackQuartiles();
+      }).catch(() => callEvent('AdError'));
     },
     stopAd: function() {
       callEvent('AdStopped');
