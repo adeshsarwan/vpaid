@@ -51,33 +51,23 @@ function getVPAIDAd() {
       video.onended = () => this.stopAd();
       video.onplay = () => callEvent('AdImpression');
 
-      // Create a container to hold both the image and the video
-      const wrapper = document.createElement('div');
-      wrapper.style.display = 'flex';
-      wrapper.style.alignItems = 'center';
-      wrapper.style.height = height + 'px';
+      // Style container to allow positioning
+      adContainer.style.display = 'flex';
+      adContainer.style.alignItems = 'center';
 
       const image = document.createElement('img');
       image.src = 'https://vast.thebesads.com/images/side-banner.jpg';
-      image.style.height = '100%';
+      image.style.height = height + 'px';
       image.style.marginRight = '10px';
-      wrapper.appendChild(image);
+      adContainer.insertBefore(image, video); // Insert before video if possible
 
-      const videoWrapper = document.createElement('div');
-      videoWrapper.style.flex = '1';
-      videoWrapper.appendChild(video);
-      wrapper.appendChild(videoWrapper);
-
-      // Click button
       const visitBtn = document.createElement('button');
       visitBtn.textContent = 'Visit Site';
       visitBtn.onclick = () => {
         clickTrackers.forEach(url => new Image().src = url);
         window.open(clickThrough, '_blank');
       };
-      wrapper.appendChild(visitBtn);
-
-      adContainer.appendChild(wrapper);
+      adContainer.appendChild(visitBtn);
 
       callEvent('AdLoaded');
     },
