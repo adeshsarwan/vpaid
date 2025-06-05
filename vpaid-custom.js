@@ -85,12 +85,14 @@ function getVPAIDAd() {
       bottomBannerLink.href = clickThrough;
       bottomBannerLink.target = '_blank';
       bottomBannerLink.style.position = 'absolute';
-      bottomBannerLink.style.bottom = '-20%';
+      bottomBannerLink.style.bottom = '-100px';
       bottomBannerLink.style.left = '0';
       bottomBannerLink.style.width = '100%';
       bottomBannerLink.style.height = '20%';
       bottomBannerLink.style.zIndex = '10';
-      bottomBannerLink.style.transition = 'bottom 1s ease';
+      setTimeout(() => {
+        bottomBannerLink.style.transition = 'bottom 1s ease';
+      }, 50);
 
       const bottomBanner = document.createElement('img');
       bottomBanner.src = 'https://vast.thebesads.com/images/bottom-banner.jpg';
