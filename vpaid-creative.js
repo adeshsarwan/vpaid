@@ -66,6 +66,8 @@ function getVPAIDAd() {
     getAdSkippableState: function() { return false; },
     getAdExpanded: function() { return false; },
     getAdIcons: function() { return false; },
+    getAdWidth: function() { return video ? video.videoWidth || 640 : 640; },
+    getAdHeight: function() { return video ? video.videoHeight || 360 : 360; },
     subscribe: function(callback, eventName) {
       events[eventName] = callback;
     },
@@ -74,3 +76,5 @@ function getVPAIDAd() {
     }
   };
 }
+
+window.getVPAIDAd = getVPAIDAd;
