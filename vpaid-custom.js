@@ -1,169 +1,128 @@
 function getVPAIDAd() {
-  let adContainer, video, clickThrough = '', clickTrackers = [], _volume = 1;
-  let events = {}, quartileEventsFired = {25: false, 50: false, 75: false};
-
-  function callEvent(name) {
-    if (typeof events[name] === 'function') events[name]();
-  }
-
-  function trackQuartiles() {
-    if (!video || isNaN(video.duration)) return;
-
-    const checkQuartiles = () => {
-      const currentTime = video.currentTime;
-      const duration = video.duration;
-      if (!quartileEventsFired[25] && currentTime >= duration * 0.25) {
-        callEvent('AdVideoFirstQuartile');
-        quartileEventsFired[25] = true;
-      }
-      if (!quartileEventsFired[50] && currentTime >= duration * 0.5) {
-        callEvent('AdVideoMidpoint');
-        quartileEventsFired[50] = true;
-      }
-      if (!quartileEventsFired[75] && currentTime >= duration * 0.75) {
-        callEvent('AdVideoThirdQuartile');
-        quartileEventsFired[75] = true;
-      }
-    };
-
-    video.addEventListener('timeupdate', checkQuartiles);
-  }
+  let adContainer, video;
+  let _events = {};
 
   return {
     handshakeVersion: function(version) {
       return '2.0';
     },
+
     initAd: function(width, height, viewMode, desiredBitrate, creativeData, environmentVars) {
       const adParams = JSON.parse(creativeData.AdParameters || '{}');
-      clickThrough = 'https://www.coca-colacompany.com/';
-      clickTrackers = adParams.clickTrackers || [];
+      const clickTrackers = adParams.clickTrackers || [];
+      const videoFile = adParams.mediaFiles?.[0]?.uri || '';
+      const clickThroughUrl = 'https://www.coca-colacompany.com/';
+
       video = environmentVars.videoSlot;
       adContainer = environmentVars.slot;
 
-      if (!video || !adParams.mediaFiles || !adParams.mediaFiles[0]?.uri) {
-        callEvent('AdError');
-        return;
-      }
-
-      // Set up the video
-      video.src = adParams.mediaFiles[0].uri;
-      video.load();
-      video.onended = () => this.stopAd();
-      video.onplay = () => callEvent('AdImpression');
-
-      // Style ad container
+      // Set up ad container
       adContainer.style.position = 'relative';
-      adContainer.style.width = width + 'px';
-      adContainer.style.height = height + 'px';
+      adContainer.style.width = '100%';
+      adContainer.style.height = '100%';
       adContainer.style.overflow = 'hidden';
       adContainer.style.backgroundColor = 'black';
 
-      // Left vertical Coca-Cola banner
-      const leftBannerLink = document.createElement('a');
-      leftBannerLink.href = clickThrough;
-      leftBannerLink.target = '_blank';
-      leftBannerLink.style.position = 'absolute';
-      leftBannerLink.style.left = '-20%';
-      leftBannerLink.style.top = '0';
-      leftBannerLink.style.width = '20%';
-      leftBannerLink.style.height = '100%';
-      leftBannerLink.style.zIndex = '10';
-      leftBannerLink.style.transition = 'left 1s ease';
-
-      const leftBanner = document.createElement('img');
-      leftBanner.src = 'https://vast.thebesads.com/images/side-banner.jpg';
-      leftBanner.style.width = '100%';
-      leftBanner.style.height = '100%';
-      leftBanner.style.objectFit = 'cover';
-      leftBanner.style.cursor = 'pointer';
-
-      leftBannerLink.appendChild(leftBanner);
-      adContainer.appendChild(leftBannerLink);
-
-      // Bottom horizontal Coca-Cola banner
-      const bottomBannerLink = document.createElement('a');
-      bottomBannerLink.href = clickThrough;
-      bottomBannerLink.target = '_blank';
-      bottomBannerLink.style.position = 'absolute';
-      bottomBannerLink.style.bottom = '-100px';
-      bottomBannerLink.style.left = '0';
-      bottomBannerLink.style.width = '100%';
-      bottomBannerLink.style.height = '20%';
-      bottomBannerLink.style.zIndex = '10';
-      setTimeout(() => {
-        bottomBannerLink.style.transition = 'bottom 1s ease';
-      }, 50);
-
-      const bottomBanner = document.createElement('img');
-      bottomBanner.src = 'https://vast.thebesads.com/images/bottom-banner.jpg';
-      bottomBanner.style.width = '100%';
-      bottomBanner.style.height = '100%';
-      bottomBanner.style.objectFit = 'cover';
-      bottomBanner.style.cursor = 'pointer';
-
-      bottomBannerLink.appendChild(bottomBanner);
-      adContainer.appendChild(bottomBannerLink);
-
-      // Animate banners into view
-      setTimeout(() => {
-        leftBannerLink.style.left = '0';
-        bottomBannerLink.style.bottom = '0';
-      }, 100);
-
-      // Animate video into top-right quadrant, accounting for bottom banner
+      // Inject video
       if (video && video.style) {
+        video.src = videoFile;
+        video.load();
         video.style.position = 'absolute';
         video.style.top = '0';
         video.style.left = '20%';
         video.style.width = '80%';
         video.style.height = '80%';
-        video.style.boxSizing = 'border-box';
-        video.style.transition = 'all 1s ease';
-        video.style.zIndex = '5';
-        adContainer.appendChild(video);
+        video.style.zIndex = '10';
       }
 
-      callEvent('AdLoaded');
+      // Side Banner
+      const sideBanner = document.createElement('img');
+      sideBanner.src = 'https://vast.thebesads.com/images/side-banner.jpg';
+      sideBanner.style.position = 'absolute';
+      sideBanner.style.left = '0';
+      sideBanner.style.top = '0';
+      sideBanner.style.width = '20%';
+      sideBanner.style.height = '100%';
+      sideBanner.style.objectFit = 'cover';
+      sideBanner.style.zIndex = '5';
+      sideBanner.style.opacity = '0';
+      sideBanner.style.transition = 'opacity 1s ease';
+
+      sideBanner.onclick = () => {
+        new Image().src = 'https://vast.thebesads.com/track/click?source=side';
+        window.open(clickThroughUrl, '_blank');
+      };
+
+      // Bottom Banner
+      const bottomBanner = document.createElement('img');
+      bottomBanner.src = 'https://vast.thebesads.com/images/bottom-banner.jpg';
+      bottomBanner.style.position = 'absolute';
+      bottomBanner.style.bottom = '0';
+      bottomBanner.style.left = '20%';
+      bottomBanner.style.width = '80%';
+      bottomBanner.style.height = '20%';
+      bottomBanner.style.objectFit = 'cover';
+      bottomBanner.style.zIndex = '5';
+      bottomBanner.style.opacity = '0';
+      bottomBanner.style.transition = 'opacity 1s ease';
+
+      bottomBanner.onclick = () => {
+        new Image().src = 'https://vast.thebesads.com/track/click?source=bottom';
+        window.open(clickThroughUrl, '_blank');
+      };
+
+      adContainer.appendChild(sideBanner);
+      adContainer.appendChild(bottomBanner);
+
+      // Trigger fade-ins after layout
+      setTimeout(() => {
+        sideBanner.style.opacity = '1';
+        bottomBanner.style.opacity = '1';
+      }, 100);
+
+      video.onended = () => this.stopAd();
+
+      this._callEvent('AdLoaded');
     },
+
     startAd: function() {
-      video.play().then(() => {
-        callEvent('AdStarted');
-        trackQuartiles();
-      }).catch(() => callEvent('AdError'));
-    },
-    stopAd: function() {
-      callEvent('AdStopped');
-    },
-    pauseAd: function() {
-      video?.pause();
-      callEvent('AdPaused');
-    },
-    resumeAd: function() {
       video?.play();
-      callEvent('AdPlaying');
+      this._callEvent('AdStarted');
     },
+
+    stopAd: function() {
+      this._callEvent('AdStopped');
+    },
+
+    // Required VPAID methods
+    pauseAd: function() { video?.pause(); },
+    resumeAd: function() { video?.play(); },
     expandAd: function() {},
     collapseAd: function() {},
     skipAd: function() {},
     resizeAd: function(width, height, viewMode) {},
     getAdLinear: function() { return true; },
-    getAdDuration: function() { return video?.duration || 0; },
-    getAdRemainingTime: function() { return video ? video.duration - video.currentTime : 0; },
-    getAdVolume: function() { return video ? video.volume : _volume; },
-    setAdVolume: function(val) {
-      _volume = val;
-      if (video) video.volume = val;
-    },
-    getAdSkippableState: function() { return false; },
     getAdExpanded: function() { return false; },
+    getAdSkippableState: function() { return false; },
+    getAdDuration: function() { return video?.duration || 30; },
+    getAdRemainingTime: function() {
+      return video ? video.duration - video.currentTime : 0;
+    },
+    getAdVolume: function() { return video?.volume || 1; },
+    setAdVolume: function(val) { if (video) video.volume = val; },
+    getAdWidth: function() { return video?.videoWidth || 640; },
+    getAdHeight: function() { return video?.videoHeight || 360; },
     getAdIcons: function() { return false; },
-    getAdWidth: function() { return video ? video.videoWidth || 640 : 640; },
-    getAdHeight: function() { return video ? video.videoHeight || 360 : 360; },
+
+    // Event handling
     subscribe: function(callback, eventName) {
-      events[eventName] = callback;
+      _events[eventName] = callback;
     },
     unsubscribe: function(eventName) {
-      delete events[eventName];
+      delete _events[eventName];
+    },
+    _callEvent: function(name) {
+      if (typeof _events[name] === 'function') _events[name]();
     }
   };
 }
