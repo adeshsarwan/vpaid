@@ -59,7 +59,7 @@ function getVPAIDAd() {
       image.src = 'https://vast.thebesads.com/images/side-banner.jpg';
       image.style.height = height + 'px';
       image.style.marginRight = '10px';
-      adContainer.insertBefore(image, video); // Insert before video if possible
+      adContainer.appendChild(image); // Safe append
 
       const visitBtn = document.createElement('button');
       visitBtn.textContent = 'Visit Site';
