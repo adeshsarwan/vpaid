@@ -33,6 +33,14 @@ function getVPAIDAd() {
         video.style.width = '80%';
         video.style.height = '80%';
         video.style.zIndex = '10';
+        video.style.opacity = '0';
+        video.style.transition = 'opacity 1s ease-in';
+
+        setTimeout(() => {
+          video.style.opacity = '1';
+        }, 100);
+
+        adContainer.appendChild(video);
       }
 
       // Side Banner
@@ -46,7 +54,8 @@ function getVPAIDAd() {
       sideBanner.style.objectFit = 'cover';
       sideBanner.style.zIndex = '5';
       sideBanner.style.opacity = '0';
-      sideBanner.style.transition = 'opacity 1s ease';
+      sideBanner.style.transition = 'opacity 1s ease-in';
+      sideBanner.style.cursor = 'pointer';
 
       sideBanner.onclick = () => {
         new Image().src = 'https://vast.thebesads.com/track/click?source=side';
@@ -64,7 +73,8 @@ function getVPAIDAd() {
       bottomBanner.style.objectFit = 'cover';
       bottomBanner.style.zIndex = '5';
       bottomBanner.style.opacity = '0';
-      bottomBanner.style.transition = 'opacity 1s ease';
+      bottomBanner.style.transition = 'opacity 1s ease-in';
+      bottomBanner.style.cursor = 'pointer';
 
       bottomBanner.onclick = () => {
         new Image().src = 'https://vast.thebesads.com/track/click?source=bottom';
