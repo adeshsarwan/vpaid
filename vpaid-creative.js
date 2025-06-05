@@ -35,7 +35,7 @@ function getVPAIDAd() {
     },
     initAd: function(width, height, viewMode, desiredBitrate, creativeData, environmentVars) {
       const adParams = JSON.parse(creativeData.AdParameters || '{}');
-      clickThrough = adParams.clickThroughUrl || '';
+      clickThrough = 'https://www.coca-colacompany.com/';
       clickTrackers = adParams.clickTrackers || [];
       video = environmentVars.videoSlot;
       adContainer = environmentVars.slot;
@@ -55,18 +55,47 @@ function getVPAIDAd() {
       adContainer.style.position = 'relative';
       adContainer.style.width = width + 'px';
       adContainer.style.height = height + 'px';
+      adContainer.style.overflow = 'hidden';
 
-      // Add static side image positioned on the left
+      // Create wrapper for image animation
+      const imageLink = document.createElement('a');
+      imageLink.href = clickThrough;
+      imageLink.target = '_blank';
+      imageLink.style.position = 'absolute';
+      imageLink.style.top = '0';
+      imageLink.style.left = '-20%';
+      imageLink.style.height = '100%';
+      imageLink.style.width = '20%';
+      imageLink.style.zIndex = '10';
+      imageLink.style.transition = 'left 1s ease';
+
       const image = document.createElement('img');
       image.src = 'https://vast.thebesads.com/images/side-banner.jpg';
-      image.style.position = 'absolute';
-      image.style.top = '0';
-      image.style.left = '0';
       image.style.height = '100%';
-      image.style.width = '20%';
+      image.style.width = '100%';
       image.style.objectFit = 'cover';
-      image.style.zIndex = '10';
-      adContainer.appendChild(image);
+      image.style.cursor = 'pointer';
+
+      imageLink.appendChild(image);
+      adContainer.appendChild(imageLink);
+
+      // Animate image into view
+      setTimeout(() => {
+        imageLink.style.left = '0';
+      }, 100);
+
+      // Animate video resizing
+      video.style.position = 'absolute';
+      video.style.left = '0';
+      video.style.top = '0';
+      video.style.width = '100%';
+      video.style.height = '100%';
+      video.style.transition = 'left 1s ease, width 1s ease';
+
+      setTimeout(() => {
+        video.style.left = '20%';
+        video.style.width = '80%';
+      }, 100);
 
       // Click button overlay
       const visitBtn = document.createElement('button');
@@ -75,6 +104,14 @@ function getVPAIDAd() {
       visitBtn.style.bottom = '10px';
       visitBtn.style.right = '10px';
       visitBtn.style.zIndex = '20';
+      visitBtn.style.background = 'transparent';
+      visitBtn.style.border = '1px solid white';
+      visitBtn.style.color = 'white';
+      visitBtn.style.padding = '8px 12px';
+      visitBtn.style.cursor = 'pointer';
+      visitBtn.style.fontSize = '14px';
+      visitBtn.onmouseover = () => visitBtn.style.opacity = '0.7';
+      visitBtn.onmouseout = () => visitBtn.style.opacity = '1';
       visitBtn.onclick = () => {
         clickTrackers.forEach(url => new Image().src = url);
         window.open(clickThrough, '_blank');
