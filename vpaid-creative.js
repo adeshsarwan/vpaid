@@ -51,18 +51,39 @@ function getVPAIDAd() {
       video.onended = () => this.stopAd();
       video.onplay = () => callEvent('AdImpression');
 
-      // Style container to allow positioning
+      // Style container as flex layout
       adContainer.style.display = 'flex';
+      adContainer.style.flexDirection = 'row';
       adContainer.style.alignItems = 'center';
+      adContainer.style.width = width + 'px';
+      adContainer.style.height = height + 'px';
 
+      // Image takes 10% width
       const image = document.createElement('img');
       image.src = 'https://vast.thebesads.com/images/side-banner.jpg';
-      image.style.height = height + 'px';
+      image.style.width = '10%';
+      image.style.height = '100%';
+      image.style.objectFit = 'cover';
       image.style.marginRight = '10px';
-      adContainer.appendChild(image); // Safe append
+      adContainer.appendChild(image);
 
+      // Wrap video in a div that takes 90% width
+      const videoWrapper = document.createElement('div');
+      videoWrapper.style.width = '90%';
+      videoWrapper.style.height = '100%';
+      videoWrapper.style.display = 'flex';
+      videoWrapper.style.alignItems = 'center';
+      videoWrapper.style.justifyContent = 'center';
+      videoWrapper.appendChild(video);
+      adContainer.appendChild(videoWrapper);
+
+      // Click button (optional overlay)
       const visitBtn = document.createElement('button');
       visitBtn.textContent = 'Visit Site';
+      visitBtn.style.position = 'absolute';
+      visitBtn.style.bottom = '10px';
+      visitBtn.style.right = '10px';
+      visitBtn.style.zIndex = '999';
       visitBtn.onclick = () => {
         clickTrackers.forEach(url => new Image().src = url);
         window.open(clickThrough, '_blank');
