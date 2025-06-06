@@ -9,10 +9,36 @@ function getVPAIDAd() {
 
     initAd(width, height, viewMode, desiredBitrate, creativeData, environmentVars) {
       const self = this;
-      video = environmentVars.videoSlot;
       adContainer = environmentVars.slot;
 
       adContainer.innerHTML = '';
+
+      video = environmentVars.videoSlot;
+      if (!video || typeof video !== 'object') {
+        console.warn('No valid videoSlot provided. Creating fallback video element.');
+        video = document.createElement('video');
+        adContainer.appendChild(video);
+      }
+
+      video.setAttribute('playsinline', '');
+      video.setAttribute('muted', 'true');
+      video.setAttribute('autoplay', 'true');
+      video.muted = true;
+      video.autoplay = true;
+
+      if (video.style) {
+        Object.assign(video.style, {
+          position: 'absolute',
+          top: '0',
+          left: '20%',
+          width: '80%',
+          height: '80%',
+          zIndex: '10',
+          opacity: '0',
+          transition: 'opacity 1s ease-in'
+        });
+      }
+
       adContainer.style.position = 'relative';
       adContainer.style.width = '100%';
       adContainer.style.height = '100%';
