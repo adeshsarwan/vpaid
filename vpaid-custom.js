@@ -12,7 +12,31 @@ function getVPAIDAd() {
       const clickThroughUrl = 'https://www.coca-colacompany.com/';
 
       video = environmentVars.videoSlot;
+      if (!video) {
+        console.warn('videoSlot is null. Creating fallback <video> element.');
+        video = document.createElement('video');
+        video.setAttribute('playsinline', '');
+        video.setAttribute('muted', 'true');
+        video.autoplay = true;
+        video.muted = true;
+        adContainer.appendChild(video);
+      }
+
       console.log('videoSlot received:', video);
+      console.log('video element info:', {
+        width: video.videoWidth,
+        height: video.videoHeight,
+        readyState: video.readyState,
+        muted: video.muted,
+        autoplay: video.autoplay
+      });
+
+      // Force visible and sized in case videoSlot is hidden
+      video.style.display = 'block';
+      video.style.width = '640px';
+      video.style.height = '360px';
+      video.style.backgroundColor = 'black';
+
       adContainer = environmentVars.slot;
 
       adContainer.style.position = 'relative';
