@@ -65,13 +65,13 @@ function getVPAIDAd() {
         return;
       }
 
-      // Layout setup
+      // Only now proceed with styling
       adContainer.style.position = 'relative';
       adContainer.style.width = width + 'px';
       adContainer.style.height = height + 'px';
       adContainer.style.overflow = 'hidden';
 
-      // Left banner (20% width, full height)
+      // Left banner
       const leftBanner = document.createElement('a');
       leftBanner.href = clickThrough;
       leftBanner.target = '_blank';
@@ -92,7 +92,7 @@ function getVPAIDAd() {
       leftBanner.appendChild(leftImg);
       adContainer.appendChild(leftBanner);
 
-      // Bottom banner (80% width, 20% height)
+      // Bottom banner
       const bottomBanner = document.createElement('a');
       bottomBanner.href = clickThrough;
       bottomBanner.target = '_blank';
@@ -113,7 +113,7 @@ function getVPAIDAd() {
       bottomBanner.appendChild(bottomImg);
       adContainer.appendChild(bottomBanner);
 
-      // Video wrapper (80% width and height at top-right)
+      // Video wrapper
       const videoWrapper = document.createElement('div');
       videoWrapper.style.position = 'absolute';
       videoWrapper.style.top = '0';
@@ -138,7 +138,7 @@ function getVPAIDAd() {
         bottomBanner.style.bottom = '0';
       }, 100);
 
-      // Play video
+      // Load and play
       if (selectedFile.endsWith('.mpd') && typeof dashjs !== 'undefined') {
         const player = dashjs.MediaPlayer().create();
         player.initialize(video, selectedFile, false);
@@ -150,7 +150,6 @@ function getVPAIDAd() {
       video.onended = () => this.stopAd();
       video.onplay = () => callEvent('AdImpression');
 
-      // Click overlay
       const visitBtn = document.createElement('button');
       visitBtn.textContent = 'Visit Site';
       visitBtn.style.position = 'absolute';
