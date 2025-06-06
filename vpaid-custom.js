@@ -3,11 +3,11 @@ function getVPAIDAd() {
   let adContainer, video, _events = {}, duration = 0;
   let quartilesFired = { first: false, midpoint: false, third: false, complete: false };
 
-  const ad = {
-
+  return {
     handshakeVersion: () => '2.0',
 
     initAd(width, height, viewMode, desiredBitrate, creativeData, environmentVars) {
+      const self = this;
       const adParams = JSON.parse(creativeData.AdParameters || '{}');
       const videoFile = adParams.mediaFiles?.[0]?.uri || 'https://vast.thebesads.com/video/my-ad-video.mp4';
       const clickThroughUrl = 'https://www.coca-colacompany.com/';
@@ -34,10 +34,8 @@ function getVPAIDAd() {
               hls.loadSource(hlsSource);
               hls.attachMedia(video);
               hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().then(() => {
-          ad._callEvent('AdStarted');
-        });
-      });
+                video.play();
+              });
             } else {
               loadDASH();
             }
@@ -61,10 +59,8 @@ function getVPAIDAd() {
         if (video.canPlayType('application/vnd.apple.mpegurl')) {
           video.src = hlsSource;
           video.addEventListener('loadedmetadata', () => {
-    video.play().then(() => {
-      ad._callEvent('AdStarted');
-    });
-  });
+            video.play();
+          });
         } else {
           loadHLS();
         }
@@ -160,7 +156,7 @@ function getVPAIDAd() {
 
     startAd: function () {
       video?.play();
-      // this._callEvent('AdStarted');
+      this._callEvent('AdStarted');
     },
 
     stopAd: function () {
@@ -187,4 +183,4 @@ function getVPAIDAd() {
     }
   };
 }
-window.getVPAIDAd = () => ad;
+window.getVPAIDAd = getVPAIDAd;
