@@ -17,7 +17,7 @@
 </MediaFile>
 </MediaFiles>
 <AdParameters>
-<![CDATA[ { "clickThroughUrl": "https://www.coca-colacompany.com/", "clickTrackers": ["https://vast.thebesads.com/track/click"], "mediaFiles": [{"uri": "https://customer-dh8tmpn57fmllfi0.cloudflarestream.com/f0ef822997405cacae3a8681ce8f20d8/manifest/video.m3u8"}] } ]]>
+<![CDATA[ { "clickThroughUrl": "https://www.coca-colacompany.com/", "clickTrackers": ["https://vast.thebesads.com/track/click"], "mediaFiles": [{"uri": "https://videosbesads.thebesads.com/video/my-ad-video.mp4"}] } ]]>
 </AdParameters>
 </Linear>
 </Creative>
@@ -27,7 +27,7 @@
 <Duration>00:00:30</Duration>
 <MediaFiles>
 <MediaFile type="video/mp4" delivery="progressive" width="640" height="360">
-<![CDATA[ https://vast.thebesads.com/video/my-ad-video.mp4 ]]>
+<![CDATA[ https://videosbesads.thebesads.com/video/my-ad-video.mp4 ]]>
 </MediaFile>
 </MediaFiles>
 <VideoClicks>
