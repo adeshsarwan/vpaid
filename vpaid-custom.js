@@ -1,3 +1,4 @@
+
 function getVPAIDAd() {
   let adContainer, video, clickThrough = '', clickTrackers = [], _volume = 1;
   let events = {}, quartileEventsFired = {25: false, 50: false, 75: false};
@@ -35,13 +36,36 @@ function getVPAIDAd() {
     },
     initAd: function(width, height, viewMode, desiredBitrate, creativeData, environmentVars) {
       const adParams = JSON.parse(creativeData.AdParameters || '{}');
-      clickThrough = 'https://www.coca-colacompany.com/';
+      clickThrough = adParams.clickThroughUrl || '';
       clickTrackers = adParams.clickTrackers || [];
       video = environmentVars.videoSlot;
       adContainer = environmentVars.slot;
 
-      
-      // Resize container and layout
+      if (!video || !adContainer || !adParams.mediaFiles || !adParams.mediaFiles.length) {
+        callEvent('AdError');
+        return;
+      }
+
+      // Select playable media file
+      let selectedFile = null;
+      for (let mf of adParams.mediaFiles) {
+        if (mf.type === 'application/x-mpegURL' && video.canPlayType('application/vnd.apple.mpegurl')) {
+          selectedFile = mf.uri;
+          break;
+        } else if (mf.type === 'application/dash+xml' && typeof dashjs !== 'undefined') {
+          selectedFile = mf.uri;
+          break;
+        } else if (mf.type === 'video/mp4' && video.canPlayType('video/mp4')) {
+          selectedFile = mf.uri;
+        }
+      }
+
+      if (!selectedFile) {
+        callEvent('AdError');
+        return;
+      }
+
+      // Layout setup
       adContainer.style.position = 'relative';
       adContainer.style.width = width + 'px';
       adContainer.style.height = height + 'px';
@@ -89,7 +113,7 @@ function getVPAIDAd() {
       bottomBanner.appendChild(bottomImg);
       adContainer.appendChild(bottomBanner);
 
-      // Video wrapper for top-right 80% x 80%
+      // Video wrapper (80% width and height at top-right)
       const videoWrapper = document.createElement('div');
       videoWrapper.style.position = 'absolute';
       videoWrapper.style.top = '0';
@@ -108,43 +132,14 @@ function getVPAIDAd() {
       videoWrapper.appendChild(video);
       adContainer.appendChild(videoWrapper);
 
-      // Animate banners into view
+      // Animate banners
       setTimeout(() => {
         leftBanner.style.left = '0';
         bottomBanner.style.bottom = '0';
       }, 100);
 
-if (!video || !adParams.mediaFiles || !adParams.mediaFiles[0]?.uri) {
-        callEvent('AdError');
-        return;
-      }
-
-      // Set up the video
-      const mediaFiles = adParams.mediaFiles || [];
-      let selectedFile = null;
-
-      for (let mf of mediaFiles) {
-        if (mf.type === 'application/x-mpegURL' && video.canPlayType('application/vnd.apple.mpegurl')) {
-          selectedFile = mf.uri;
-          break;
-        } else if (mf.type === 'application/dash+xml') {
-          if (typeof dashjs !== 'undefined') {
-            selectedFile = mf.uri;
-            break;
-          }
-        } else if (mf.type === 'video/mp4' && video.canPlayType('video/mp4')) {
-          selectedFile = mf.uri;
-        }
-      }
-
-      if (!selectedFile) {
-        callEvent('AdError');
-        return;
-      }
-
-      if (selectedFile.endsWith('.m3u8') && video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = selectedFile;
-      } else if (selectedFile.endsWith('.mpd') && typeof dashjs !== 'undefined') {
+      // Play video
+      if (selectedFile.endsWith('.mpd') && typeof dashjs !== 'undefined') {
         const player = dashjs.MediaPlayer().create();
         player.initialize(video, selectedFile, false);
       } else {
@@ -155,55 +150,7 @@ if (!video || !adParams.mediaFiles || !adParams.mediaFiles[0]?.uri) {
       video.onended = () => this.stopAd();
       video.onplay = () => callEvent('AdImpression');
 
-      // Style ad container to allow absolute positioning
-      adContainer.style.position = 'relative';
-      adContainer.style.width = width + 'px';
-      adContainer.style.height = height + 'px';
-      adContainer.style.overflow = 'hidden';
-
-      // Create wrapper for image animation
-      const imageLink = document.createElement('a');
-      imageLink.href = clickThrough;
-      imageLink.target = '_blank';
-      imageLink.style.position = 'absolute';
-      imageLink.style.top = '0';
-      imageLink.style.left = '-20%';
-      imageLink.style.height = '100%';
-      imageLink.style.width = '20%';
-      imageLink.style.zIndex = '10';
-      imageLink.style.transition = 'left 1s ease';
-
-      const image = document.createElement('img');
-      image.src = 'https://vast.thebesads.com/images/side-banner.jpg';
-      image.style.height = '100%';
-      image.style.width = '100%';
-      image.style.objectFit = 'cover';
-      image.style.cursor = 'pointer';
-
-      imageLink.appendChild(image);
-      adContainer.appendChild(imageLink);
-
-      // Animate image into view
-      setTimeout(() => {
-        imageLink.style.left = '0';
-      }, 100);
-
-      // Animate video resizing safely
-      if (video && video.style) {
-        video.style.position = 'absolute';
-        video.style.left = '0';
-        video.style.top = '0';
-        video.style.width = '100%';
-        video.style.height = '100%';
-        video.style.transition = 'left 1s ease, width 1s ease';
-
-        setTimeout(() => {
-          video.style.left = '20%';
-          video.style.width = '80%';
-        }, 100);
-      }
-
-      // Click button overlay
+      // Click overlay
       const visitBtn = document.createElement('button');
       visitBtn.textContent = 'Visit Site';
       visitBtn.style.position = 'absolute';
@@ -215,9 +162,6 @@ if (!video || !adParams.mediaFiles || !adParams.mediaFiles[0]?.uri) {
       visitBtn.style.color = 'white';
       visitBtn.style.padding = '8px 12px';
       visitBtn.style.cursor = 'pointer';
-      visitBtn.style.fontSize = '14px';
-      visitBtn.onmouseover = () => visitBtn.style.opacity = '0.7';
-      visitBtn.onmouseout = () => visitBtn.style.opacity = '1';
       visitBtn.onclick = () => {
         clickTrackers.forEach(url => new Image().src = url);
         window.open(clickThrough, '_blank');
