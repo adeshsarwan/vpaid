@@ -32,7 +32,7 @@ function getVPAIDAd() {
 
   function setupLayout(width, height) {
     if (!video || !adContainer || !video.style) {
-      console.error("VPAID ERROR: video or adContainer or video.style is undefined");
+      console.error("VPAID ERROR: video or adContainer or video.style is undefined (strict mode)");
       callEvent('AdError');
       return;
     }
@@ -90,18 +90,12 @@ function getVPAIDAd() {
     videoWrapper.style.height = '80%';
     videoWrapper.style.overflow = 'hidden';
 
-    if (video && video.style) {
-      video.style.position = 'absolute';
-      video.style.top = '0';
-      video.style.left = '0';
-      video.style.width = '100%';
-      video.style.height = '100%';
-      video.style.objectFit = 'cover';
-    } else {
-      console.error("VPAID ERROR: video.style is undefined when trying to set styles");
-      callEvent('AdError');
-      return;
-    }
+    video.style.position = 'absolute';
+    video.style.top = '0';
+    video.style.left = '0';
+    video.style.width = '100%';
+    video.style.height = '100%';
+    video.style.objectFit = 'cover';
 
     videoWrapper.appendChild(video);
     adContainer.appendChild(videoWrapper);
@@ -137,23 +131,14 @@ function getVPAIDAd() {
       const adParams = JSON.parse(creativeData.AdParameters || '{}');
       clickThrough = adParams.clickThroughUrl || '';
       clickTrackers = adParams.clickTrackers || [];
-      adContainer = environmentVars.slot;
 
-      if (!adContainer) {
-        console.error("VPAID ERROR: adContainer is undefined");
+      adContainer = environmentVars.slot;
+      video = environmentVars.videoSlot;
+
+      if (!adContainer || !video || !video.style) {
+        console.error("VPAID ERROR: Required videoSlot or adContainer not provided by host environment.");
         callEvent('AdError');
         return;
-      }
-
-      video = environmentVars.videoSlot;
-      if (!video) {
-        console.warn("VPAID WARNING: videoSlot not provided, creating <video> manually");
-        video = document.createElement('video');
-        video.setAttribute('playsinline', '');
-        video.setAttribute('webkit-playsinline', '');
-        video.setAttribute('muted', 'muted');
-        video.setAttribute('autoplay', 'autoplay');
-        adContainer.appendChild(video);
       }
 
       if (!adParams.mediaFiles || !adParams.mediaFiles.length) {
@@ -181,7 +166,7 @@ function getVPAIDAd() {
         return;
       }
 
-      requestAnimationFrame(() => setupLayout(width, height));
+      setupLayout(width, height);
 
       if (selectedFile.endsWith('.mpd') && typeof dashjs !== 'undefined') {
         const player = dashjs.MediaPlayer().create();
