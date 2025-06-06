@@ -31,7 +31,8 @@ function getVPAIDAd() {
   }
 
   function setupLayout(width, height) {
-    if (!video || !adContainer) {
+    if (!video || !adContainer || !video.style) {
+      console.error("VPAID ERROR: video or adContainer or video.style is undefined");
       callEvent('AdError');
       return;
     }
@@ -89,12 +90,18 @@ function getVPAIDAd() {
     videoWrapper.style.height = '80%';
     videoWrapper.style.overflow = 'hidden';
 
-    video.style.position = 'absolute';
-    video.style.top = '0';
-    video.style.left = '0';
-    video.style.width = '100%';
-    video.style.height = '100%';
-    video.style.objectFit = 'cover';
+    if (video && video.style) {
+      video.style.position = 'absolute';
+      video.style.top = '0';
+      video.style.left = '0';
+      video.style.width = '100%';
+      video.style.height = '100%';
+      video.style.objectFit = 'cover';
+    } else {
+      console.error("VPAID ERROR: video.style is undefined when trying to set styles");
+      callEvent('AdError');
+      return;
+    }
 
     videoWrapper.appendChild(video);
     adContainer.appendChild(videoWrapper);
@@ -133,12 +140,14 @@ function getVPAIDAd() {
       adContainer = environmentVars.slot;
 
       if (!adContainer) {
+        console.error("VPAID ERROR: adContainer is undefined");
         callEvent('AdError');
         return;
       }
 
       video = environmentVars.videoSlot;
       if (!video) {
+        console.warn("VPAID WARNING: videoSlot not provided, creating <video> manually");
         video = document.createElement('video');
         video.setAttribute('playsinline', '');
         video.setAttribute('webkit-playsinline', '');
@@ -148,6 +157,7 @@ function getVPAIDAd() {
       }
 
       if (!adParams.mediaFiles || !adParams.mediaFiles.length) {
+        console.error("VPAID ERROR: No media files provided");
         callEvent('AdError');
         return;
       }
@@ -166,11 +176,12 @@ function getVPAIDAd() {
       }
 
       if (!selectedFile) {
+        console.error("VPAID ERROR: No compatible video format found");
         callEvent('AdError');
         return;
       }
 
-      setupLayout(width, height);  // ⬅️ Now layout happens after video is ready
+      setupLayout(width, height);
 
       if (selectedFile.endsWith('.mpd') && typeof dashjs !== 'undefined') {
         const player = dashjs.MediaPlayer().create();
