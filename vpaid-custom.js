@@ -1,4 +1,3 @@
-
 function getVPAIDAd() {
   let adContainer, video, clickThrough = '', clickTrackers = [], _volume = 1;
   let events = {}, quartileEventsFired = {25: false, 50: false, 75: false};
@@ -30,166 +29,106 @@ function getVPAIDAd() {
     video.addEventListener('timeupdate', checkQuartiles);
   }
 
-  function setupLayout(width, height) {
-    if (!video || !adContainer || !video.style) {
-      console.error("VPAID ERROR: video or adContainer or video.style is undefined (strict mode)");
-      callEvent('AdError');
-      return;
-    }
-
-    adContainer.style.position = 'relative';
-    adContainer.style.width = width + 'px';
-    adContainer.style.height = height + 'px';
-    adContainer.style.overflow = 'hidden';
-
-    const leftBanner = document.createElement('a');
-    leftBanner.href = clickThrough;
-    leftBanner.target = '_blank';
-    leftBanner.style.position = 'absolute';
-    leftBanner.style.left = '-20%';
-    leftBanner.style.top = '0';
-    leftBanner.style.width = '20%';
-    leftBanner.style.height = '100%';
-    leftBanner.style.zIndex = '10';
-    leftBanner.style.transition = 'left 1s ease';
-
-    const leftImg = document.createElement('img');
-    leftImg.src = 'https://vast.thebesads.com/images/side-banner.jpg';
-    leftImg.style.width = '100%';
-    leftImg.style.height = '100%';
-    leftImg.style.objectFit = 'cover';
-    leftImg.style.cursor = 'pointer';
-    leftBanner.appendChild(leftImg);
-    adContainer.appendChild(leftBanner);
-
-    const bottomBanner = document.createElement('a');
-    bottomBanner.href = clickThrough;
-    bottomBanner.target = '_blank';
-    bottomBanner.style.position = 'absolute';
-    bottomBanner.style.left = '20%';
-    bottomBanner.style.bottom = '-20%';
-    bottomBanner.style.width = '80%';
-    bottomBanner.style.height = '20%';
-    bottomBanner.style.zIndex = '10';
-    bottomBanner.style.transition = 'bottom 1s ease';
-
-    const bottomImg = document.createElement('img');
-    bottomImg.src = 'https://vast.thebesads.com/images/bottom-banner.jpg';
-    bottomImg.style.width = '100%';
-    bottomImg.style.height = '100%';
-    bottomImg.style.objectFit = 'cover';
-    bottomImg.style.cursor = 'pointer';
-    bottomBanner.appendChild(bottomImg);
-    adContainer.appendChild(bottomBanner);
-
-    const videoWrapper = document.createElement('div');
-    videoWrapper.style.position = 'absolute';
-    videoWrapper.style.top = '0';
-    videoWrapper.style.left = '20%';
-    videoWrapper.style.width = '80%';
-    videoWrapper.style.height = '80%';
-    videoWrapper.style.overflow = 'hidden';
-
-    video.style.position = 'absolute';
-    video.style.top = '0';
-    video.style.left = '0';
-    video.style.width = '100%';
-    video.style.height = '100%';
-    video.style.objectFit = 'cover';
-
-    videoWrapper.appendChild(video);
-    adContainer.appendChild(videoWrapper);
-
-    setTimeout(() => {
-      leftBanner.style.left = '0';
-      bottomBanner.style.bottom = '0';
-    }, 100);
-
-    const visitBtn = document.createElement('button');
-    visitBtn.textContent = 'Visit Site';
-    visitBtn.style.position = 'absolute';
-    visitBtn.style.bottom = '10px';
-    visitBtn.style.right = '10px';
-    visitBtn.style.zIndex = '20';
-    visitBtn.style.background = 'transparent';
-    visitBtn.style.border = '1px solid white';
-    visitBtn.style.color = 'white';
-    visitBtn.style.padding = '8px 12px';
-    visitBtn.style.cursor = 'pointer';
-    visitBtn.onclick = () => {
-      clickTrackers.forEach(url => new Image().src = url);
-      window.open(clickThrough, '_blank');
-    };
-    adContainer.appendChild(visitBtn);
-  }
-
   return {
     handshakeVersion: function(version) {
       return '2.0';
     },
     initAd: function(width, height, viewMode, desiredBitrate, creativeData, environmentVars) {
       const adParams = JSON.parse(creativeData.AdParameters || '{}');
-      clickThrough = adParams.clickThroughUrl || '';
+      clickThrough = 'https://www.coca-colacompany.com/';
       clickTrackers = adParams.clickTrackers || [];
-
-      adContainer = environmentVars.slot;
       video = environmentVars.videoSlot;
+      adContainer = environmentVars.slot;
 
-      if (!adContainer || !video || !video.style) {
-        console.error("VPAID ERROR: Required videoSlot or adContainer not provided by host environment.");
+      if (!video || !adParams.mediaFiles || !adParams.mediaFiles[0]?.uri) {
         callEvent('AdError');
         return;
       }
 
-      if (!adParams.mediaFiles || !adParams.mediaFiles.length) {
-        console.error("VPAID ERROR: No media files provided");
-        callEvent('AdError');
-        return;
-      }
-
-      let selectedFile = null;
-      for (let mf of adParams.mediaFiles) {
-        if (mf.type === 'application/x-mpegURL' && video.canPlayType('application/vnd.apple.mpegurl')) {
-          selectedFile = mf.uri;
-          break;
-        } else if (mf.type === 'application/dash+xml' && typeof dashjs !== 'undefined') {
-          selectedFile = mf.uri;
-          break;
-        } else if (mf.type === 'video/mp4' && video.canPlayType('video/mp4')) {
-          selectedFile = mf.uri;
-        }
-      }
-
-      if (!selectedFile) {
-        console.error("VPAID ERROR: No compatible video format found");
-        callEvent('AdError');
-        return;
-      }
-
-      setupLayout(width, height);
-
-      if (selectedFile.endsWith('.mpd') && typeof dashjs !== 'undefined') {
-        const player = dashjs.MediaPlayer().create();
-        player.initialize(video, selectedFile, false);
-      } else {
-        video.src = selectedFile;
-      }
-
+      // Set up the video
+      video.src = adParams.mediaFiles[0].uri;
       video.load();
       video.onended = () => this.stopAd();
       video.onplay = () => callEvent('AdImpression');
 
+      // Style ad container to allow absolute positioning
+      adContainer.style.position = 'relative';
+      adContainer.style.width = width + 'px';
+      adContainer.style.height = height + 'px';
+      adContainer.style.overflow = 'hidden';
+
+      // Create wrapper for image animation
+      const imageLink = document.createElement('a');
+      imageLink.href = clickThrough;
+      imageLink.target = '_blank';
+      imageLink.style.position = 'absolute';
+      imageLink.style.top = '0';
+      imageLink.style.left = '-20%';
+      imageLink.style.height = '100%';
+      imageLink.style.width = '20%';
+      imageLink.style.zIndex = '10';
+      imageLink.style.transition = 'left 1s ease';
+
+      const image = document.createElement('img');
+      image.src = 'https://vast.thebesads.com/images/side-banner.jpg';
+      image.style.height = '100%';
+      image.style.width = '100%';
+      image.style.objectFit = 'cover';
+      image.style.cursor = 'pointer';
+
+      imageLink.appendChild(image);
+      adContainer.appendChild(imageLink);
+
+      // Animate image into view
+      setTimeout(() => {
+        imageLink.style.left = '0';
+      }, 100);
+
+      // Animate video resizing safely
+      if (video && video.style) {
+        video.style.position = 'absolute';
+        video.style.left = '0';
+        video.style.top = '0';
+        video.style.width = '100%';
+        video.style.height = '100%';
+        video.style.transition = 'left 1s ease, width 1s ease';
+
+        setTimeout(() => {
+          video.style.left = '20%';
+          video.style.bottom = '20%';
+          video.style.width = '80%';
+          video.style.height = '80%';
+        }, 100);
+      }
+
+      // Click button overlay
+      const visitBtn = document.createElement('button');
+      visitBtn.textContent = 'Visit Site';
+      visitBtn.style.position = 'absolute';
+      visitBtn.style.bottom = '10px';
+      visitBtn.style.right = '10px';
+      visitBtn.style.zIndex = '20';
+      visitBtn.style.background = 'transparent';
+      visitBtn.style.border = '1px solid white';
+      visitBtn.style.color = 'white';
+      visitBtn.style.padding = '8px 12px';
+      visitBtn.style.cursor = 'pointer';
+      visitBtn.style.fontSize = '14px';
+      visitBtn.onmouseover = () => visitBtn.style.opacity = '0.7';
+      visitBtn.onmouseout = () => visitBtn.style.opacity = '1';
+      visitBtn.onclick = () => {
+        clickTrackers.forEach(url => new Image().src = url);
+        window.open(clickThrough, '_blank');
+      };
+      adContainer.appendChild(visitBtn);
+
       callEvent('AdLoaded');
     },
     startAd: function() {
-      if (video && typeof video.play === 'function') {
-        video.play().then(() => {
-          callEvent('AdStarted');
-          trackQuartiles();
-        }).catch(() => callEvent('AdError'));
-      } else {
-        callEvent('AdError');
-      }
+      video.play().then(() => {
+        callEvent('AdStarted');
+        trackQuartiles();
+      }).catch(() => callEvent('AdError'));
     },
     stopAd: function() {
       callEvent('AdStopped');
