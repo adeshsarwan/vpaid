@@ -181,7 +181,7 @@ function getVPAIDAd() {
         return;
       }
 
-      setupLayout(width, height);
+      requestAnimationFrame(() => setupLayout(width, height));
 
       if (selectedFile.endsWith('.mpd') && typeof dashjs !== 'undefined') {
         const player = dashjs.MediaPlayer().create();
