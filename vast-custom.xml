@@ -13,7 +13,7 @@
 <Duration>00:00:30</Duration>
 <MediaFiles>
 <MediaFile apiFramework="VPAID" type="application/javascript" delivery="progressive" maintainAspectRatio="true" scalable="true">
-<![CDATA[ https://vast.thebesads.com/vpaid-creative.js ]]>
+<![CDATA[ https://vast.thebesads.com/vpaid-custom.js ]]>
 </MediaFile>
 </MediaFiles>
 <AdParameters>
