@@ -14,17 +14,56 @@ function getVPAIDAd() {
       video = environmentVars.videoSlot;
       adContainer = environmentVars.slot;
 
-      // Container styles
       adContainer.style.position = 'relative';
       adContainer.style.width = '100%';
       adContainer.style.height = '100%';
       adContainer.style.overflow = 'hidden';
       adContainer.style.backgroundColor = 'black';
 
-      // Video setup
       if (video && video.style) {
-        video.src = videoFile;
-        video.load();
+        const hlsSource = 'https://customer-dh8tmpn57fmllfi0.cloudflarestream.com/f0ef822997405cacae3a8681ce8f20d8/manifest/video.m3u8';
+        const dashSource = 'https://customer-dh8tmpn57fmllfi0.cloudflarestream.com/f0ef822997405cacae3a8681ce8f20d8/manifest/video.mpd';
+
+        function loadHLS() {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest';
+          script.onload = () => {
+            if (Hls.isSupported()) {
+              const hls = new Hls();
+              hls.loadSource(hlsSource);
+              hls.attachMedia(video);
+              hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                video.play();
+              });
+            } else {
+              loadDASH();
+            }
+          };
+          script.onerror = loadDASH;
+          document.head.appendChild(script);
+        }
+
+        function loadDASH() {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.dashjs.org/latest/dash.all.min.js';
+          script.onload = () => {
+            if (dashjs) {
+              const player = dashjs.MediaPlayer().create();
+              player.initialize(video, dashSource, true);
+            }
+          };
+          document.head.appendChild(script);
+        }
+
+        if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = hlsSource;
+          video.addEventListener('loadedmetadata', () => {
+            video.play();
+          });
+        } else {
+          loadHLS();
+        }
+
         video.style.position = 'absolute';
         video.style.top = '0';
         video.style.left = '20%';
@@ -33,14 +72,13 @@ function getVPAIDAd() {
         video.style.zIndex = '10';
         video.style.opacity = '0';
         video.style.transition = 'opacity 1s ease-in';
-        video.muted = true; // Allow autoplay
+        video.muted = true;
         setTimeout(() => {
           video.style.opacity = '1';
         }, 100);
         adContainer.appendChild(video);
       }
 
-      // Side Banner
       const sideBanner = document.createElement('img');
       sideBanner.src = 'https://vast.thebesads.com/images/side-banner.jpg';
       Object.assign(sideBanner.style, {
@@ -60,7 +98,6 @@ function getVPAIDAd() {
         window.open(clickThroughUrl, '_blank');
       };
 
-      // Bottom Banner
       const bottomBanner = document.createElement('img');
       bottomBanner.src = 'https://vast.thebesads.com/images/bottom-banner.jpg';
       Object.assign(bottomBanner.style, {
