@@ -1,5 +1,6 @@
 
 function getVPAIDAd() {
+  let video = null;
   let adContainer, video, _events = {}, duration = 0;
   let quartilesFired = { first: false, midpoint: false, third: false, complete: false };
 
