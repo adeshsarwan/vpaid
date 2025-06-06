@@ -186,33 +186,79 @@ function getVPAIDAd() {
         console.warn('Fallback: Forcing AdStarted after 5s timeout.');
         self._callEvent('AdStarted');
       }, 5000);
-    },
+      } catch(e) {
+        console.error("Error in VPAID method startAd:", e);
+      }},
 
-    startAd: function () {
+    startAd: function() {
+      try {
+        console.log("VPAID method called: startAd");
+    
       video?.play();
       console.log('Calling _callEvent: AdStarted');
       this._callEvent('AdStarted');
-    },
+      } catch(e) {
+        console.error("Error in VPAID method stopAd:", e);
+      }},
 
-    stopAd: function () {
+    stopAd: function() {
+      try {
+        console.log("VPAID method called: stopAd");
+    
       console.log('Calling _callEvent: AdStopped');
       this._callEvent('AdStopped');
-    },
+      } catch(e) {
+        console.error("Error in VPAID method pauseAd:", e);
+      }},
 
-    pauseAd() { video?.pause(); },
-    resumeAd() { video?.play(); },
-    expandAd() {}, collapseAd() {}, skipAd() {}, resizeAd() {},
-    getAdLinear() { return true; },
-    getAdExpanded() { return false; },
-    getAdSkippableState() { return false; },
-    getAdDuration() { return video?.duration || 30; },
-    getAdRemainingTime() { return video ? video.duration - video.currentTime : 0; },
-    getAdVolume() { return video?.volume || 1; },
-    setAdVolume(val) { if (video) video.volume = val; },
-    getAdWidth() { return video?.videoWidth || 640; },
-    getAdHeight() { return video?.videoHeight || 360; },
-    getAdIcons() { return false; },
-    subscribe(callback, event) { _events[event] = callback; },
+    pauseAd() { video?.pause();   } catch(e) {
+        console.error("Error in VPAID method resumeAd:", e);
+      }},
+    resumeAd() { video?.play();   } catch(e) {
+        console.error("Error in VPAID method expandAd:", e);
+      }},
+    expandAd() {  } catch(e) {
+        console.error("Error in VPAID method collapseAd:", e);
+      }}, collapseAd() {  } catch(e) {
+        console.error("Error in VPAID method skipAd:", e);
+      }}, skipAd() {  } catch(e) {
+        console.error("Error in VPAID method resizeAd:", e);
+      }}, resizeAd() {  } catch(e) {
+        console.error("Error in VPAID method getAdLinear:", e);
+      }},
+    getAdLinear() { return true;   } catch(e) {
+        console.error("Error in VPAID method getAdExpanded:", e);
+      }},
+    getAdExpanded() { return false;   } catch(e) {
+        console.error("Error in VPAID method getAdSkippableState:", e);
+      }},
+    getAdSkippableState() { return false;   } catch(e) {
+        console.error("Error in VPAID method getAdDuration:", e);
+      }},
+    getAdDuration() { return video?.duration || 30;   } catch(e) {
+        console.error("Error in VPAID method getAdRemainingTime:", e);
+      }},
+    getAdRemainingTime() { return video ? video.duration - video.currentTime : 0;   } catch(e) {
+        console.error("Error in VPAID method getAdVolume:", e);
+      }},
+    getAdVolume() { return video?.volume || 1;   } catch(e) {
+        console.error("Error in VPAID method setAdVolume:", e);
+      }},
+    setAdVolume(val) { if (video) video.volume = val;   } catch(e) {
+        console.error("Error in VPAID method getAdWidth:", e);
+      }},
+    getAdWidth() { return video?.videoWidth || 640;   } catch(e) {
+        console.error("Error in VPAID method getAdHeight:", e);
+      }},
+    getAdHeight() { return video?.videoHeight || 360;   } catch(e) {
+        console.error("Error in VPAID method getAdIcons:", e);
+      }},
+    getAdIcons() { return false;   } catch(e) {
+        console.error("Error in VPAID method subscribe:", e);
+      }},
+    subscribe(callback, event) { _events[event] = callback;   } catch(e) {
+        console.error("Error in VPAID method unsubscribe:", e);
+      }},
     unsubscribe(event) { delete _events[event]; },
     _callEvent(event) {
       console.log('Triggering event:', event);
