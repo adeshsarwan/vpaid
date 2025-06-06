@@ -3,7 +3,8 @@ function getVPAIDAd() {
   let adContainer, video, _events = {}, duration = 0;
   let quartilesFired = { first: false, midpoint: false, third: false, complete: false };
 
-  return {
+  const ad = {
+
     handshakeVersion: () => '2.0',
 
     initAd(width, height, viewMode, desiredBitrate, creativeData, environmentVars) {
@@ -33,8 +34,10 @@ function getVPAIDAd() {
               hls.loadSource(hlsSource);
               hls.attachMedia(video);
               hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                video.play();
-              });
+        video.play().then(() => {
+          ad._callEvent('AdStarted');
+        });
+      });
             } else {
               loadDASH();
             }
@@ -58,8 +61,10 @@ function getVPAIDAd() {
         if (video.canPlayType('application/vnd.apple.mpegurl')) {
           video.src = hlsSource;
           video.addEventListener('loadedmetadata', () => {
-            video.play();
-          });
+    video.play().then(() => {
+      ad._callEvent('AdStarted');
+    });
+  });
         } else {
           loadHLS();
         }
@@ -155,7 +160,7 @@ function getVPAIDAd() {
 
     startAd: function () {
       video?.play();
-      this._callEvent('AdStarted');
+      // this._callEvent('AdStarted');
     },
 
     stopAd: function () {
@@ -182,4 +187,4 @@ function getVPAIDAd() {
     }
   };
 }
-window.getVPAIDAd = getVPAIDAd;
+window.getVPAIDAd = () => ad;
