@@ -1,0 +1,14 @@
+<html>
+<body>
+  <video id="video" controls autoplay muted style="width: 640px; height: 360px;"></video>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+  const video = document.getElementById('video');
+  const hls = new Hls();
+  hls.loadSource('https://customer-dh8tmpn57fmllfi0.cloudflarestream.com/f0ef822997405cacae3a8681ce8f20d8/manifest/video.m3u8');
+  hls.attachMedia(video);
+</script>
+
+</body>
+  
+</html>
