@@ -7,7 +7,6 @@ function getVPAIDAd() {
     handshakeVersion: () => '2.0',
 
     initAd(width, height, viewMode, desiredBitrate, creativeData, environmentVars) {
-      const self = this;
       const adParams = JSON.parse(creativeData.AdParameters || '{}');
       const videoFile = adParams.mediaFiles?.[0]?.uri || 'https://vast.thebesads.com/video/my-ad-video.mp4';
       const clickThroughUrl = 'https://www.coca-colacompany.com/';
@@ -22,8 +21,8 @@ function getVPAIDAd() {
       adContainer.style.backgroundColor = 'black';
 
       if (video && video.style) {
-        const hlsSource = 'https://customer-dh8tmpn57fmllfi0.cloudflarestream.com/f0ef822997405cacae3a8681ce8f20d8/manifest/video.m3u8';
-        const dashSource = 'https://customer-dh8tmpn57fmllfi0.cloudflarestream.com/f0ef822997405cacae3a8681ce8f20d8/manifest/video.mpd';
+        const hlsSource = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
+        const dashSource = 'https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd';
 
         function loadHLS() {
           const script = document.createElement('script');
