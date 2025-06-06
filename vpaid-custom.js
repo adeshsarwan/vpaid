@@ -38,15 +38,28 @@ function getVPAIDAd() {
       const adParams = JSON.parse(creativeData.AdParameters || '{}');
       clickThrough = adParams.clickThroughUrl || '';
       clickTrackers = adParams.clickTrackers || [];
-      video = environmentVars.videoSlot;
       adContainer = environmentVars.slot;
 
-      if (!video || !adContainer || !adParams.mediaFiles || !adParams.mediaFiles.length) {
+      if (!adContainer) {
         callEvent('AdError');
         return;
       }
 
-      // Select playable media file
+      video = environmentVars.videoSlot;
+      if (!video) {
+        video = document.createElement('video');
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
+        video.setAttribute('muted', 'muted');
+        video.setAttribute('autoplay', 'autoplay');
+        adContainer.appendChild(video);
+      }
+
+      if (!adParams.mediaFiles || !adParams.mediaFiles.length) {
+        callEvent('AdError');
+        return;
+      }
+
       let selectedFile = null;
       for (let mf of adParams.mediaFiles) {
         if (mf.type === 'application/x-mpegURL' && video.canPlayType('application/vnd.apple.mpegurl')) {
@@ -65,13 +78,11 @@ function getVPAIDAd() {
         return;
       }
 
-      // Only now proceed with styling
       adContainer.style.position = 'relative';
       adContainer.style.width = width + 'px';
       adContainer.style.height = height + 'px';
       adContainer.style.overflow = 'hidden';
 
-      // Left banner
       const leftBanner = document.createElement('a');
       leftBanner.href = clickThrough;
       leftBanner.target = '_blank';
@@ -92,7 +103,6 @@ function getVPAIDAd() {
       leftBanner.appendChild(leftImg);
       adContainer.appendChild(leftBanner);
 
-      // Bottom banner
       const bottomBanner = document.createElement('a');
       bottomBanner.href = clickThrough;
       bottomBanner.target = '_blank';
@@ -113,7 +123,6 @@ function getVPAIDAd() {
       bottomBanner.appendChild(bottomImg);
       adContainer.appendChild(bottomBanner);
 
-      // Video wrapper
       const videoWrapper = document.createElement('div');
       videoWrapper.style.position = 'absolute';
       videoWrapper.style.top = '0';
@@ -132,13 +141,11 @@ function getVPAIDAd() {
       videoWrapper.appendChild(video);
       adContainer.appendChild(videoWrapper);
 
-      // Animate banners
       setTimeout(() => {
         leftBanner.style.left = '0';
         bottomBanner.style.bottom = '0';
       }, 100);
 
-      // Load and play
       if (selectedFile.endsWith('.mpd') && typeof dashjs !== 'undefined') {
         const player = dashjs.MediaPlayer().create();
         player.initialize(video, selectedFile, false);
