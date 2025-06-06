@@ -1,268 +1,148 @@
 
 function getVPAIDAd() {
+  let adContainer = null;
   let video = null;
-  let adContainer, video, _events = {}, duration = 0;
-  let quartilesFired = { first: false, midpoint: false, third: false, complete: false };
+  let _events = {};
+  let duration = 30;
 
   return {
-    handshakeVersion: () => '2.0',
+    handshakeVersion: function(version) {
+      return '2.0';
+    },
 
-    initAd(width, height, viewMode, desiredBitrate, creativeData, environmentVars) {
-      const adParams = JSON.parse(creativeData.AdParameters || '{}');
-      const videoFile = adParams.mediaFiles?.[0]?.uri || 'https://vast.thebesads.com/video/my-ad-video.mp4';
-      const clickThroughUrl = 'https://www.coca-colacompany.com/';
-
+    initAd: function(width, height, viewMode, desiredBitrate, creativeData, environmentVars) {
+      const self = this;
       video = environmentVars.videoSlot;
-      if (!video) {
-        console.warn('videoSlot is null. Creating fallback <video> element.');
+      adContainer = environmentVars.slot;
+
+      if (!video || typeof video !== 'object') {
+        console.warn('No valid videoSlot provided. Creating a fallback <video> element.');
         video = document.createElement('video');
-        video.setAttribute('playsinline', '');
-        video.setAttribute('muted', 'true');
-        video.autoplay = true;
-        video.muted = true;
         adContainer.appendChild(video);
       }
 
-      console.log('videoSlot received:', video);
-      console.log('video element info:', {
-        width: video.videoWidth,
-        height: video.videoHeight,
-        readyState: video.readyState,
-        muted: video.muted,
-        autoplay: video.autoplay
-      });
-
-      // Force visible and sized in case videoSlot is hidden
-      video.style.display = 'block';
-      video.style.width = '640px';
-      video.style.height = '360px';
-      video.style.backgroundColor = 'black';
-
-      adContainer = environmentVars.slot;
-
-      adContainer.style.position = 'relative';
-      adContainer.style.width = '100%';
-      adContainer.style.height = '100%';
-      adContainer.style.overflow = 'hidden';
-      adContainer.style.backgroundColor = 'black';
-
-      if (video && video.style) {
-        const hlsSource = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
-        const dashSource = 'https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd';
-
-        function loadHLS() {
-          const script = document.createElement('script');
-          script.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest';
-          script.onload = () => {
-            if (Hls.isSupported()) {
-              const hls = new Hls();
-              hls.loadSource(hlsSource);
-              hls.attachMedia(video);
-              hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                video.play();
-              });
-            } else {
-              loadDASH();
-            }
-          };
-          script.onerror = loadDASH;
-          document.head.appendChild(script);
-        }
-
-        function loadDASH() {
-          const script = document.createElement('script');
-          script.src = 'https://cdn.dashjs.org/latest/dash.all.min.js';
-          script.onload = () => {
-            if (dashjs) {
-              const player = dashjs.MediaPlayer().create();
-              player.initialize(video, dashSource, true);
-            }
-          };
-          document.head.appendChild(script);
-        }
-
-        if (video.canPlayType('application/vnd.apple.mpegurl')) {
-          video.src = hlsSource;
-          video.addEventListener('loadedmetadata', () => {
-            video.play();
-          });
-        } else {
-          loadHLS();
-        }
-
-        video.style.position = 'absolute';
-        video.style.top = '0';
-        video.style.left = '20%';
-        video.style.width = '80%';
-        video.style.height = '80%';
-        video.style.zIndex = '10';
-        video.style.opacity = '0';
-        video.style.transition = 'opacity 1s ease-in';
+      try {
+        video.setAttribute('playsinline', '');
+        video.setAttribute('muted', 'true');
+        video.setAttribute('autoplay', 'true');
         video.muted = true;
-        setTimeout(() => {
-          video.style.opacity = '1';
-        }, 100);
-        // Skipped re-appending videoSlot (already provided by environmentVars)
+        video.autoplay = true;
+
+        if (video.style) {
+          video.style.display = 'block';
+          video.style.width = '640px';
+          video.style.height = '360px';
+          video.style.backgroundColor = 'black';
+        }
+
+        console.log('Final video element ready:', video);
+      } catch (err) {
+        console.error('Failed to configure video element:', err);
       }
 
-      const sideBanner = document.createElement('img');
-      sideBanner.src = 'https://vast.thebesads.com/images/side-banner.jpg';
-      Object.assign(sideBanner.style, {
-        position: 'absolute',
-        left: '0',
-        top: '0',
-        width: '20%',
-        height: '100%',
-        objectFit: 'cover',
-        zIndex: '5',
-        opacity: '0',
-        transition: 'opacity 1s ease-in',
-        cursor: 'pointer'
-      });
-      sideBanner.onclick = () => {
-        new Image().src = 'https://vast.thebesads.com/track/click?source=side';
-        window.open(clickThroughUrl, '_blank');
+      const hls = document.createElement('script');
+      hls.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest';
+      hls.onload = () => {
+        if (Hls.isSupported()) {
+          const hlsPlayer = new Hls();
+          hlsPlayer.loadSource('https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8');
+          hlsPlayer.attachMedia(video);
+          hlsPlayer.on(Hls.Events.MANIFEST_PARSED, function () {
+            video.play().then(() => {
+              self._callEvent('AdStarted');
+            }).catch(e => {
+              console.error('Playback failed:', e);
+              setTimeout(() => self._callEvent('AdStarted'), 3000); // fallback
+            });
+          });
+        }
       };
+      document.head.appendChild(hls);
 
-      const bottomBanner = document.createElement('img');
-      bottomBanner.src = 'https://vast.thebesads.com/images/bottom-banner.jpg';
-      Object.assign(bottomBanner.style, {
-        position: 'absolute',
-        bottom: '0',
-        left: '20%',
-        width: '80%',
-        height: '20%',
-        objectFit: 'cover',
-        zIndex: '5',
-        opacity: '0',
-        transition: 'opacity 1s ease-in',
-        cursor: 'pointer'
-      });
-      bottomBanner.onclick = () => {
-        new Image().src = 'https://vast.thebesads.com/track/click?source=bottom';
-        window.open(clickThroughUrl, '_blank');
-      };
-
-      adContainer.appendChild(sideBanner);
-      adContainer.appendChild(bottomBanner);
-
-      setTimeout(() => {
-        sideBanner.style.opacity = '1';
-        bottomBanner.style.opacity = '1';
-      }, 100);
-
-      video.addEventListener('timeupdate', () => {
-        duration = video.duration || 30;
-        const current = video.currentTime;
-        if (!quartilesFired.first && current >= duration * 0.25) {
-          console.log('Calling _callEvent: AdVideoFirstQuartile');
-      this._callEvent('AdVideoFirstQuartile');
-          quartilesFired.first = true;
-        }
-        if (!quartilesFired.midpoint && current >= duration * 0.5) {
-          console.log('Calling _callEvent: AdVideoMidpoint');
-      this._callEvent('AdVideoMidpoint');
-          quartilesFired.midpoint = true;
-        }
-        if (!quartilesFired.third && current >= duration * 0.75) {
-          console.log('Calling _callEvent: AdVideoThirdQuartile');
-      this._callEvent('AdVideoThirdQuartile');
-          quartilesFired.third = true;
-        }
-      });
-
-      video.onended = () => {
-        if (!quartilesFired.complete) {
-          console.log('Calling _callEvent: AdVideoComplete');
-      this._callEvent('AdVideoComplete');
-          quartilesFired.complete = true;
-        }
-        this.stopAd();
-      };
-
-      console.log('Calling _callEvent: AdLoaded');
       this._callEvent('AdLoaded');
-      setTimeout(() => {
-        console.warn('Fallback: Forcing AdStarted after 5s timeout.');
-        self._callEvent('AdStarted');
-      }, 5000);
-      } catch(e) {
-        console.error("Error in VPAID method startAd:", e);
-      }},
+    },
 
     startAd: function() {
       try {
-        console.log("VPAID method called: startAd");
-    
-      video?.play();
-      console.log('Calling _callEvent: AdStarted');
-      this._callEvent('AdStarted');
-      } catch(e) {
-        console.error("Error in VPAID method stopAd:", e);
-      }},
+        console.log("startAd called");
+        video?.play();
+        this._callEvent('AdStarted');
+      } catch (e) {
+        console.error("Error in startAd:", e);
+      }
+    },
 
     stopAd: function() {
-      try {
-        console.log("VPAID method called: stopAd");
-    
-      console.log('Calling _callEvent: AdStopped');
       this._callEvent('AdStopped');
-      } catch(e) {
-        console.error("Error in VPAID method pauseAd:", e);
-      }},
+    },
 
-    pauseAd() { video?.pause();   } catch(e) {
-        console.error("Error in VPAID method resumeAd:", e);
-      }},
-    resumeAd() { video?.play();   } catch(e) {
-        console.error("Error in VPAID method expandAd:", e);
-      }},
-    expandAd() {  } catch(e) {
-        console.error("Error in VPAID method collapseAd:", e);
-      }}, collapseAd() {  } catch(e) {
-        console.error("Error in VPAID method skipAd:", e);
-      }}, skipAd() {  } catch(e) {
-        console.error("Error in VPAID method resizeAd:", e);
-      }}, resizeAd() {  } catch(e) {
-        console.error("Error in VPAID method getAdLinear:", e);
-      }},
-    getAdLinear() { return true;   } catch(e) {
-        console.error("Error in VPAID method getAdExpanded:", e);
-      }},
-    getAdExpanded() { return false;   } catch(e) {
-        console.error("Error in VPAID method getAdSkippableState:", e);
-      }},
-    getAdSkippableState() { return false;   } catch(e) {
-        console.error("Error in VPAID method getAdDuration:", e);
-      }},
-    getAdDuration() { return video?.duration || 30;   } catch(e) {
-        console.error("Error in VPAID method getAdRemainingTime:", e);
-      }},
-    getAdRemainingTime() { return video ? video.duration - video.currentTime : 0;   } catch(e) {
-        console.error("Error in VPAID method getAdVolume:", e);
-      }},
-    getAdVolume() { return video?.volume || 1;   } catch(e) {
-        console.error("Error in VPAID method setAdVolume:", e);
-      }},
-    setAdVolume(val) { if (video) video.volume = val;   } catch(e) {
-        console.error("Error in VPAID method getAdWidth:", e);
-      }},
-    getAdWidth() { return video?.videoWidth || 640;   } catch(e) {
-        console.error("Error in VPAID method getAdHeight:", e);
-      }},
-    getAdHeight() { return video?.videoHeight || 360;   } catch(e) {
-        console.error("Error in VPAID method getAdIcons:", e);
-      }},
-    getAdIcons() { return false;   } catch(e) {
-        console.error("Error in VPAID method subscribe:", e);
-      }},
-    subscribe(callback, event) { _events[event] = callback;   } catch(e) {
-        console.error("Error in VPAID method unsubscribe:", e);
-      }},
-    unsubscribe(event) { delete _events[event]; },
-    _callEvent(event) {
+    pauseAd: function() {
+      video?.pause();
+    },
+
+    resumeAd: function() {
+      video?.play();
+    },
+
+    expandAd: function() {},
+    collapseAd: function() {},
+    skipAd: function() {},
+
+    resizeAd: function(width, height, viewMode) {},
+
+    getAdLinear: function() {
+      return true;
+    },
+
+    getAdExpanded: function() {
+      return false;
+    },
+
+    getAdSkippableState: function() {
+      return false;
+    },
+
+    getAdIcons: function() {
+      return false;
+    },
+
+    getAdDuration: function() {
+      return duration;
+    },
+
+    getAdRemainingTime: function() {
+      return video ? duration - video.currentTime : duration;
+    },
+
+    getAdVolume: function() {
+      return video?.volume || 1;
+    },
+
+    setAdVolume: function(val) {
+      if (video) video.volume = val;
+    },
+
+    getAdWidth: function() {
+      return video?.videoWidth || 640;
+    },
+
+    getAdHeight: function() {
+      return video?.videoHeight || 360;
+    },
+
+    subscribe: function(callback, event) {
+      _events[event] = callback;
+    },
+
+    unsubscribe: function(event) {
+      delete _events[event];
+    },
+
+    _callEvent: function(event) {
       console.log('Triggering event:', event);
-      if (typeof _events[event] === 'function') _events[event]();
+      if (typeof _events[event] === 'function') {
+        _events[event]();
+      }
     }
   };
 }
