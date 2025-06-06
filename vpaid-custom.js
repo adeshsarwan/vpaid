@@ -12,6 +12,7 @@ function getVPAIDAd() {
       const clickThroughUrl = 'https://www.coca-colacompany.com/';
 
       video = environmentVars.videoSlot;
+      console.log('videoSlot received:', video);
       adContainer = environmentVars.slot;
 
       adContainer.style.position = 'relative';
@@ -76,7 +77,7 @@ function getVPAIDAd() {
         setTimeout(() => {
           video.style.opacity = '1';
         }, 100);
-        adContainer.appendChild(video);
+        // Skipped re-appending videoSlot (already provided by environmentVars)
       }
 
       const sideBanner = document.createElement('img');
@@ -151,6 +152,10 @@ function getVPAIDAd() {
       };
 
       this._callEvent('AdLoaded');
+      setTimeout(() => {
+        console.warn('Fallback: Forcing AdStarted after 5s timeout.');
+        self._callEvent('AdStarted');
+      }, 5000);
     },
 
     startAd: function () {
