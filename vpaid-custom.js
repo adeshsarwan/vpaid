@@ -155,27 +155,32 @@ function getVPAIDAd() {
         duration = video.duration || 30;
         const current = video.currentTime;
         if (!quartilesFired.first && current >= duration * 0.25) {
-          this._callEvent('AdVideoFirstQuartile');
+          console.log('Calling _callEvent: AdVideoFirstQuartile');
+      this._callEvent('AdVideoFirstQuartile');
           quartilesFired.first = true;
         }
         if (!quartilesFired.midpoint && current >= duration * 0.5) {
-          this._callEvent('AdVideoMidpoint');
+          console.log('Calling _callEvent: AdVideoMidpoint');
+      this._callEvent('AdVideoMidpoint');
           quartilesFired.midpoint = true;
         }
         if (!quartilesFired.third && current >= duration * 0.75) {
-          this._callEvent('AdVideoThirdQuartile');
+          console.log('Calling _callEvent: AdVideoThirdQuartile');
+      this._callEvent('AdVideoThirdQuartile');
           quartilesFired.third = true;
         }
       });
 
       video.onended = () => {
         if (!quartilesFired.complete) {
-          this._callEvent('AdVideoComplete');
+          console.log('Calling _callEvent: AdVideoComplete');
+      this._callEvent('AdVideoComplete');
           quartilesFired.complete = true;
         }
         this.stopAd();
       };
 
+      console.log('Calling _callEvent: AdLoaded');
       this._callEvent('AdLoaded');
       setTimeout(() => {
         console.warn('Fallback: Forcing AdStarted after 5s timeout.');
@@ -185,10 +190,12 @@ function getVPAIDAd() {
 
     startAd: function () {
       video?.play();
+      console.log('Calling _callEvent: AdStarted');
       this._callEvent('AdStarted');
     },
 
     stopAd: function () {
+      console.log('Calling _callEvent: AdStopped');
       this._callEvent('AdStopped');
     },
 
@@ -208,6 +215,7 @@ function getVPAIDAd() {
     subscribe(callback, event) { _events[event] = callback; },
     unsubscribe(event) { delete _events[event]; },
     _callEvent(event) {
+      console.log('Triggering event:', event);
       if (typeof _events[event] === 'function') _events[event]();
     }
   };
