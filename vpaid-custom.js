@@ -11,34 +11,18 @@ function getVPAIDAd() {
       const videoFile = adParams.mediaFiles?.[0]?.uri || 'https://vast.thebesads.com/video/my-ad-video.mp4';
       const clickThroughUrl = 'https://www.coca-colacompany.com/';
 
-      
       video = environmentVars.videoSlot;
-      if (!video || typeof video !== 'object') {
-        console.warn('No valid videoSlot provided. Creating a new <video> element.');
+      if (!video) {
+        console.warn('videoSlot is null. Creating fallback <video> element.');
         video = document.createElement('video');
+        video.setAttribute('playsinline', '');
+        video.setAttribute('muted', 'true');
+        video.autoplay = true;
+        video.muted = true;
         adContainer.appendChild(video);
       }
 
-      // Configure and style the video element safely
-      try {
-        video.setAttribute('playsinline', '');
-        video.setAttribute('muted', 'true');
-        video.setAttribute('autoplay', 'true');
-        video.muted = true;
-        video.autoplay = true;
-
-        if (video.style) {
-          video.style.display = 'block';
-          video.style.width = '640px';
-          video.style.height = '360px';
-          video.style.backgroundColor = 'black';
-        }
-
-        console.log('Final video element confirmed:', video);
-      } catch (err) {
-        console.error('Error setting up video element:', err);
-      }
-
+      console.log('videoSlot received:', video);
       console.log('video element info:', {
         width: video.videoWidth,
         height: video.videoHeight,
