@@ -30,6 +30,98 @@ function getVPAIDAd() {
     video.addEventListener('timeupdate', checkQuartiles);
   }
 
+  function setupLayout(width, height) {
+    if (!video || !adContainer) {
+      callEvent('AdError');
+      return;
+    }
+
+    adContainer.style.position = 'relative';
+    adContainer.style.width = width + 'px';
+    adContainer.style.height = height + 'px';
+    adContainer.style.overflow = 'hidden';
+
+    const leftBanner = document.createElement('a');
+    leftBanner.href = clickThrough;
+    leftBanner.target = '_blank';
+    leftBanner.style.position = 'absolute';
+    leftBanner.style.left = '-20%';
+    leftBanner.style.top = '0';
+    leftBanner.style.width = '20%';
+    leftBanner.style.height = '100%';
+    leftBanner.style.zIndex = '10';
+    leftBanner.style.transition = 'left 1s ease';
+
+    const leftImg = document.createElement('img');
+    leftImg.src = 'https://vast.thebesads.com/images/side-banner.jpg';
+    leftImg.style.width = '100%';
+    leftImg.style.height = '100%';
+    leftImg.style.objectFit = 'cover';
+    leftImg.style.cursor = 'pointer';
+    leftBanner.appendChild(leftImg);
+    adContainer.appendChild(leftBanner);
+
+    const bottomBanner = document.createElement('a');
+    bottomBanner.href = clickThrough;
+    bottomBanner.target = '_blank';
+    bottomBanner.style.position = 'absolute';
+    bottomBanner.style.left = '20%';
+    bottomBanner.style.bottom = '-20%';
+    bottomBanner.style.width = '80%';
+    bottomBanner.style.height = '20%';
+    bottomBanner.style.zIndex = '10';
+    bottomBanner.style.transition = 'bottom 1s ease';
+
+    const bottomImg = document.createElement('img');
+    bottomImg.src = 'https://vast.thebesads.com/images/bottom-banner.jpg';
+    bottomImg.style.width = '100%';
+    bottomImg.style.height = '100%';
+    bottomImg.style.objectFit = 'cover';
+    bottomImg.style.cursor = 'pointer';
+    bottomBanner.appendChild(bottomImg);
+    adContainer.appendChild(bottomBanner);
+
+    const videoWrapper = document.createElement('div');
+    videoWrapper.style.position = 'absolute';
+    videoWrapper.style.top = '0';
+    videoWrapper.style.left = '20%';
+    videoWrapper.style.width = '80%';
+    videoWrapper.style.height = '80%';
+    videoWrapper.style.overflow = 'hidden';
+
+    video.style.position = 'absolute';
+    video.style.top = '0';
+    video.style.left = '0';
+    video.style.width = '100%';
+    video.style.height = '100%';
+    video.style.objectFit = 'cover';
+
+    videoWrapper.appendChild(video);
+    adContainer.appendChild(videoWrapper);
+
+    setTimeout(() => {
+      leftBanner.style.left = '0';
+      bottomBanner.style.bottom = '0';
+    }, 100);
+
+    const visitBtn = document.createElement('button');
+    visitBtn.textContent = 'Visit Site';
+    visitBtn.style.position = 'absolute';
+    visitBtn.style.bottom = '10px';
+    visitBtn.style.right = '10px';
+    visitBtn.style.zIndex = '20';
+    visitBtn.style.background = 'transparent';
+    visitBtn.style.border = '1px solid white';
+    visitBtn.style.color = 'white';
+    visitBtn.style.padding = '8px 12px';
+    visitBtn.style.cursor = 'pointer';
+    visitBtn.onclick = () => {
+      clickTrackers.forEach(url => new Image().src = url);
+      window.open(clickThrough, '_blank');
+    };
+    adContainer.appendChild(visitBtn);
+  }
+
   return {
     handshakeVersion: function(version) {
       return '2.0';
@@ -78,73 +170,7 @@ function getVPAIDAd() {
         return;
       }
 
-      adContainer.style.position = 'relative';
-      adContainer.style.width = width + 'px';
-      adContainer.style.height = height + 'px';
-      adContainer.style.overflow = 'hidden';
-
-      const leftBanner = document.createElement('a');
-      leftBanner.href = clickThrough;
-      leftBanner.target = '_blank';
-      leftBanner.style.position = 'absolute';
-      leftBanner.style.left = '-20%';
-      leftBanner.style.top = '0';
-      leftBanner.style.width = '20%';
-      leftBanner.style.height = '100%';
-      leftBanner.style.zIndex = '10';
-      leftBanner.style.transition = 'left 1s ease';
-
-      const leftImg = document.createElement('img');
-      leftImg.src = 'https://vast.thebesads.com/images/side-banner.jpg';
-      leftImg.style.width = '100%';
-      leftImg.style.height = '100%';
-      leftImg.style.objectFit = 'cover';
-      leftImg.style.cursor = 'pointer';
-      leftBanner.appendChild(leftImg);
-      adContainer.appendChild(leftBanner);
-
-      const bottomBanner = document.createElement('a');
-      bottomBanner.href = clickThrough;
-      bottomBanner.target = '_blank';
-      bottomBanner.style.position = 'absolute';
-      bottomBanner.style.left = '20%';
-      bottomBanner.style.bottom = '-20%';
-      bottomBanner.style.width = '80%';
-      bottomBanner.style.height = '20%';
-      bottomBanner.style.zIndex = '10';
-      bottomBanner.style.transition = 'bottom 1s ease';
-
-      const bottomImg = document.createElement('img');
-      bottomImg.src = 'https://vast.thebesads.com/images/bottom-banner.jpg';
-      bottomImg.style.width = '100%';
-      bottomImg.style.height = '100%';
-      bottomImg.style.objectFit = 'cover';
-      bottomImg.style.cursor = 'pointer';
-      bottomBanner.appendChild(bottomImg);
-      adContainer.appendChild(bottomBanner);
-
-      const videoWrapper = document.createElement('div');
-      videoWrapper.style.position = 'absolute';
-      videoWrapper.style.top = '0';
-      videoWrapper.style.left = '20%';
-      videoWrapper.style.width = '80%';
-      videoWrapper.style.height = '80%';
-      videoWrapper.style.overflow = 'hidden';
-
-      video.style.position = 'absolute';
-      video.style.top = '0';
-      video.style.left = '0';
-      video.style.width = '100%';
-      video.style.height = '100%';
-      video.style.objectFit = 'cover';
-
-      videoWrapper.appendChild(video);
-      adContainer.appendChild(videoWrapper);
-
-      setTimeout(() => {
-        leftBanner.style.left = '0';
-        bottomBanner.style.bottom = '0';
-      }, 100);
+      setupLayout(width, height);  // ⬅️ Now layout happens after video is ready
 
       if (selectedFile.endsWith('.mpd') && typeof dashjs !== 'undefined') {
         const player = dashjs.MediaPlayer().create();
@@ -157,30 +183,17 @@ function getVPAIDAd() {
       video.onended = () => this.stopAd();
       video.onplay = () => callEvent('AdImpression');
 
-      const visitBtn = document.createElement('button');
-      visitBtn.textContent = 'Visit Site';
-      visitBtn.style.position = 'absolute';
-      visitBtn.style.bottom = '10px';
-      visitBtn.style.right = '10px';
-      visitBtn.style.zIndex = '20';
-      visitBtn.style.background = 'transparent';
-      visitBtn.style.border = '1px solid white';
-      visitBtn.style.color = 'white';
-      visitBtn.style.padding = '8px 12px';
-      visitBtn.style.cursor = 'pointer';
-      visitBtn.onclick = () => {
-        clickTrackers.forEach(url => new Image().src = url);
-        window.open(clickThrough, '_blank');
-      };
-      adContainer.appendChild(visitBtn);
-
       callEvent('AdLoaded');
     },
     startAd: function() {
-      video.play().then(() => {
-        callEvent('AdStarted');
-        trackQuartiles();
-      }).catch(() => callEvent('AdError'));
+      if (video && typeof video.play === 'function') {
+        video.play().then(() => {
+          callEvent('AdStarted');
+          trackQuartiles();
+        }).catch(() => callEvent('AdError'));
+      } else {
+        callEvent('AdError');
+      }
     },
     stopAd: function() {
       callEvent('AdStopped');
