@@ -1,178 +1,196 @@
-
 function getVPAIDAd() {
-  let adContainer = null;
-  let video = null;
-  let _events = {};
+  let adContainer, video, clickThrough = '', clickTrackers = [], _volume = 1;
+  let events = {}, quartileEventsFired = {25: false, 50: false, 75: false};
+
+  function callEvent(name) {
+    if (typeof events[name] === 'function') events[name]();
+  }
+
+  function trackQuartiles() {
+    if (!video || isNaN(video.duration)) return;
+
+    const checkQuartiles = () => {
+      const currentTime = video.currentTime;
+      const duration = video.duration;
+      if (!quartileEventsFired[25] && currentTime >= duration * 0.25) {
+        callEvent('AdVideoFirstQuartile');
+        quartileEventsFired[25] = true;
+      }
+      if (!quartileEventsFired[50] && currentTime >= duration * 0.5) {
+        callEvent('AdVideoMidpoint');
+        quartileEventsFired[50] = true;
+      }
+      if (!quartileEventsFired[75] && currentTime >= duration * 0.75) {
+        callEvent('AdVideoThirdQuartile');
+        quartileEventsFired[75] = true;
+      }
+    };
+
+    video.addEventListener('timeupdate', checkQuartiles);
+  }
 
   return {
-    handshakeVersion: () => '2.0',
-
-    initAd(width, height, viewMode, desiredBitrate, creativeData, environmentVars) {
-      const self = this;
+    handshakeVersion: function(version) {
+      return '2.0';
+    },
+    initAd: function(width, height, viewMode, desiredBitrate, creativeData, environmentVars) {
+      const adParams = JSON.parse(creativeData.AdParameters || '{}');
+      clickThrough = 'https://www.coca-colacompany.com/';
+      clickTrackers = adParams.clickTrackers || [];
+      video = environmentVars.videoSlot;
       adContainer = environmentVars.slot;
 
-      adContainer.innerHTML = '';
-
-      video = environmentVars.videoSlot;
-      if (!video || typeof video !== 'object') {
-        console.warn('No valid videoSlot provided. Creating fallback video element.');
-        video = document.createElement('video');
-        adContainer.appendChild(video);
+      if (!video || !adParams.mediaFiles || !adParams.mediaFiles[0]?.uri) {
+        callEvent('AdError');
+        return;
       }
 
-      video.setAttribute('playsinline', '');
-      video.setAttribute('muted', 'true');
-      video.setAttribute('autoplay', 'true');
-      video.muted = true;
-      video.autoplay = true;
+      // Set up the video
+      const mediaFiles = adParams.mediaFiles || [];
+      let selectedFile = null;
 
-      if (video.style) {
-        Object.assign(video.style, {
-          position: 'absolute',
-          top: '0',
-          left: '20%',
-          width: '80%',
-          height: '80%',
-          zIndex: '10',
-          opacity: '0',
-          transition: 'opacity 1s ease-in'
-        });
-      }
-
-      adContainer.style.position = 'relative';
-      adContainer.style.width = '100%';
-      adContainer.style.height = '100%';
-      adContainer.style.overflow = 'hidden';
-      adContainer.style.backgroundColor = 'black';
-
-      Object.assign(video.style, {
-        position: 'absolute',
-        top: '0',
-        left: '20%',
-        width: '80%',
-        height: '80%',
-        zIndex: '10',
-        opacity: '0',
-        transition: 'opacity 1s ease-in'
-      });
-      video.muted = true;
-      video.setAttribute('playsinline', '');
-      adContainer.appendChild(video);
-
-      function loadHLS() {
-        const hlsScript = document.createElement('script');
-        hlsScript.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest';
-        hlsScript.onload = () => {
-          if (Hls.isSupported()) {
-            const hls = new Hls();
-            hls.loadSource('https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8');
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, function () {
-              video.play();
-              self._callEvent('AdStarted');
-            });
-          } else {
-            loadDASH(); // fallback
+      for (let mf of mediaFiles) {
+        if (mf.type === 'application/x-mpegURL' && video.canPlayType('application/vnd.apple.mpegurl')) {
+          selectedFile = mf.uri;
+          break;
+        } else if (mf.type === 'application/dash+xml') {
+          if (typeof dashjs !== 'undefined') {
+            selectedFile = mf.uri;
+            break;
           }
-        };
-        hlsScript.onerror = loadDASH;
-        document.head.appendChild(hlsScript);
+        } else if (mf.type === 'video/mp4' && video.canPlayType('video/mp4')) {
+          selectedFile = mf.uri;
+        }
       }
 
-      function loadDASH() {
-        const dashScript = document.createElement('script');
-        dashScript.src = 'https://cdn.dashjs.org/latest/dash.all.min.js';
-        dashScript.onload = () => {
-          const player = dashjs.MediaPlayer().create();
-          player.initialize(video, 'https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd', true);
-          self._callEvent('AdStarted');
-        };
-        document.head.appendChild(dashScript);
+      if (!selectedFile) {
+        callEvent('AdError');
+        return;
       }
 
-      if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
-        video.addEventListener('loadedmetadata', function () {
-          video.play();
-          self._callEvent('AdStarted');
-        });
+      if (selectedFile.endsWith('.m3u8') && video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = selectedFile;
+      } else if (selectedFile.endsWith('.mpd') && typeof dashjs !== 'undefined') {
+        const player = dashjs.MediaPlayer().create();
+        player.initialize(video, selectedFile, false);
       } else {
-        loadHLS();
+        video.src = selectedFile;
       }
 
-      const sideBanner = document.createElement('img');
-      sideBanner.src = 'https://vast.thebesads.com/images/side-banner.jpg';
-      Object.assign(sideBanner.style, {
-        position: 'absolute',
-        left: '-20%',
-        top: '0',
-        width: '20%',
-        height: '100%',
-        objectFit: 'cover',
-        zIndex: '5',
-        transition: 'left 1s ease-out',
-        cursor: 'pointer'
-      });
-      sideBanner.onclick = () => {
-        new Image().src = 'https://vast.thebesads.com/track/click?source=side';
-        window.open('https://www.coca-colacompany.com/', '_blank');
-      };
-      adContainer.appendChild(sideBanner);
+      video.load();
+      video.onended = () => this.stopAd();
+      video.onplay = () => callEvent('AdImpression');
 
-      const bottomBanner = document.createElement('img');
-      bottomBanner.src = 'https://vast.thebesads.com/images/bottom-banner.jpg';
-      Object.assign(bottomBanner.style, {
-        position: 'absolute',
-        bottom: '-20%',
-        left: '20%',
-        width: '80%',
-        height: '20%',
-        objectFit: 'cover',
-        zIndex: '5',
-        transition: 'bottom 1s ease-out',
-        cursor: 'pointer'
-      });
-      bottomBanner.onclick = () => {
-        new Image().src = 'https://vast.thebesads.com/track/click?source=bottom';
-        window.open('https://www.coca-colacompany.com/', '_blank');
-      };
-      adContainer.appendChild(bottomBanner);
+      // Style ad container to allow absolute positioning
+      adContainer.style.position = 'relative';
+      adContainer.style.width = width + 'px';
+      adContainer.style.height = height + 'px';
+      adContainer.style.overflow = 'hidden';
 
+      // Create wrapper for image animation
+      const imageLink = document.createElement('a');
+      imageLink.href = clickThrough;
+      imageLink.target = '_blank';
+      imageLink.style.position = 'absolute';
+      imageLink.style.top = '0';
+      imageLink.style.left = '-20%';
+      imageLink.style.height = '100%';
+      imageLink.style.width = '20%';
+      imageLink.style.zIndex = '10';
+      imageLink.style.transition = 'left 1s ease';
+
+      const image = document.createElement('img');
+      image.src = 'https://vast.thebesads.com/images/side-banner.jpg';
+      image.style.height = '100%';
+      image.style.width = '100%';
+      image.style.objectFit = 'cover';
+      image.style.cursor = 'pointer';
+
+      imageLink.appendChild(image);
+      adContainer.appendChild(imageLink);
+
+      // Animate image into view
       setTimeout(() => {
-        video.style.opacity = '1';
-        sideBanner.style.left = '0';
-        bottomBanner.style.bottom = '0';
+        imageLink.style.left = '0';
       }, 100);
 
-      video.addEventListener('ended', () => {
-        self._callEvent('AdVideoComplete');
-        self.stopAd();
-      });
+      // Animate video resizing safely
+      if (video && video.style) {
+        video.style.position = 'absolute';
+        video.style.left = '0';
+        video.style.top = '0';
+        video.style.width = '100%';
+        video.style.height = '100%';
+        video.style.transition = 'left 1s ease, width 1s ease';
 
-      this._callEvent('AdLoaded');
+        setTimeout(() => {
+          video.style.left = '20%';
+          video.style.width = '80%';
+        }, 100);
+      }
+
+      // Click button overlay
+      const visitBtn = document.createElement('button');
+      visitBtn.textContent = 'Visit Site';
+      visitBtn.style.position = 'absolute';
+      visitBtn.style.bottom = '10px';
+      visitBtn.style.right = '10px';
+      visitBtn.style.zIndex = '20';
+      visitBtn.style.background = 'transparent';
+      visitBtn.style.border = '1px solid white';
+      visitBtn.style.color = 'white';
+      visitBtn.style.padding = '8px 12px';
+      visitBtn.style.cursor = 'pointer';
+      visitBtn.style.fontSize = '14px';
+      visitBtn.onmouseover = () => visitBtn.style.opacity = '0.7';
+      visitBtn.onmouseout = () => visitBtn.style.opacity = '1';
+      visitBtn.onclick = () => {
+        clickTrackers.forEach(url => new Image().src = url);
+        window.open(clickThrough, '_blank');
+      };
+      adContainer.appendChild(visitBtn);
+
+      callEvent('AdLoaded');
     },
-
-    startAd() {
+    startAd: function() {
+      video.play().then(() => {
+        callEvent('AdStarted');
+        trackQuartiles();
+      }).catch(() => callEvent('AdError'));
+    },
+    stopAd: function() {
+      callEvent('AdStopped');
+    },
+    pauseAd: function() {
+      video?.pause();
+      callEvent('AdPaused');
+    },
+    resumeAd: function() {
       video?.play();
+      callEvent('AdPlaying');
     },
-    stopAd() { this._callEvent('AdStopped'); },
-    pauseAd() { video?.pause(); },
-    resumeAd() { video?.play(); },
-    expandAd() {}, collapseAd() {}, skipAd() {}, resizeAd() {},
-    getAdLinear() { return true; },
-    getAdExpanded() { return false; },
-    getAdSkippableState() { return false; },
-    getAdDuration() { return video?.duration || 30; },
-    getAdRemainingTime() { return video ? video.duration - video.currentTime : 0; },
-    getAdVolume() { return video?.volume || 1; },
-    setAdVolume(val) { if (video) video.volume = val; },
-    getAdWidth() { return video?.videoWidth || 640; },
-    getAdHeight() { return video?.videoHeight || 360; },
-    getAdIcons() { return false; },
-    subscribe(callback, event) { _events[event] = callback; },
-    unsubscribe(event) { delete _events[event]; },
-    _callEvent(event) {
-      if (typeof _events[event] === 'function') _events[event]();
+    expandAd: function() {},
+    collapseAd: function() {},
+    skipAd: function() {},
+    resizeAd: function(width, height, viewMode) {},
+    getAdLinear: function() { return true; },
+    getAdDuration: function() { return video?.duration || 0; },
+    getAdRemainingTime: function() { return video ? video.duration - video.currentTime : 0; },
+    getAdVolume: function() { return video ? video.volume : _volume; },
+    setAdVolume: function(val) {
+      _volume = val;
+      if (video) video.volume = val;
+    },
+    getAdSkippableState: function() { return false; },
+    getAdExpanded: function() { return false; },
+    getAdIcons: function() { return false; },
+    getAdWidth: function() { return video ? video.videoWidth || 640 : 640; },
+    getAdHeight: function() { return video ? video.videoHeight || 360 : 360; },
+    subscribe: function(callback, eventName) {
+      events[eventName] = callback;
+    },
+    unsubscribe: function(eventName) {
+      delete events[eventName];
     }
   };
 }
