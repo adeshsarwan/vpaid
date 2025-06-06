@@ -32,8 +32,8 @@
               {
                 "clickTrackers": ["https://vast.thebesads.com/track/click"],
                 "mediaFiles": [
-                  { "uri": "https://customer-dh8tmpn57fmllfi0.cloudflarestream.com/f0ef822997405cacae3a8681ce8f20d8/manifest/video.m3u8", "type": "application/x-mpegURL" },
-                  { "uri": "https://customer-dh8tmpn57fmllfi0.cloudflarestream.com/f0ef822997405cacae3a8681ce8f20d8/manifest/video.mpd", "type": "application/dash+xml" }
+                  { "uri": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", "type": "application/x-mpegURL" },
+                  { "uri": "https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd", "type": "application/dash+xml" }
                 ]
               }
             ]]>
