@@ -1,25 +1,69 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<VAST version="3.0">
-  <Ad id="vpaid-lband-hls-dash">
-    <InLine>
-      <AdSystem version="1.0">VPAID Demo</AdSystem>
-      <AdTitle>VPAID L-Band with HLS and DASH</AdTitle>
-      <Impression><![CDATA[https://vast.thebesads.com/track/impression]]></Impression>
-      <Creatives>
-        <Creative sequence="1" id="vpaidCreative">
-          <Linear>
-            <Duration>00:00:30</Duration>
-            <VideoClicks>
-              <ClickThrough><![CDATA[https://www.coca-colacompany.com/]]></ClickThrough>
-            </VideoClicks>
-            <MediaFiles>
-              <MediaFile delivery="progressive" type="application/javascript" apiFramework="VPAID" width="640" height="360">
-                <![CDATA[https://example.com/vpaid-custom.js]]>
-              </MediaFile>
-            </MediaFiles>
-          </Linear>
-        </Creative>
-      </Creatives>
-    </InLine>
-  </Ad>
+<VAST xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="3.0" xsi:noNamespaceSchemaLocation="vast.xsd">
+<Ad id="12345">
+<InLine>
+<AdSystem version="1.0">ThebesAds</AdSystem>
+<AdTitle>Sample VPAID Ad</AdTitle>
+<Impression>
+<![CDATA[ https://vast.thebesads.com/track/impression ]]>
+</Impression>
+<Creatives>
+<!--  VPAID Creative  -->
+<Creative sequence="1" id="vpaid1">
+<Linear>
+<Duration>00:00:30</Duration>
+<MediaFiles>
+<MediaFile apiFramework="VPAID" type="application/javascript" delivery="progressive" maintainAspectRatio="true" scalable="true">
+<![CDATA[ https://vast.thebesads.com/vpaid-creative.js ]]>
+</MediaFile>
+</MediaFiles>
+<AdParameters>
+<![CDATA[
+{
+  "clickThroughUrl": "https://www.coca-colacompany.com/",
+  "clickTrackers": ["https://vast.thebesads.com/track/click"],
+  "mediaFiles": [
+    { "uri": "https://customer-dh8tmpn57fmllfi0.cloudflarestream.com/f0ef822997405cacae3a8681ce8f20d8/manifest/video.m3u8", "type": "application/x-mpegURL" },
+    { "uri": "https://customer-dh8tmpn57fmllfi0.cloudflarestream.com/f0ef822997405cacae3a8681ce8f20d8/manifest/video.mpd", "type": "application/dash+xml" },
+    { "uri": "https://videosbesads.thebesads.com/video/my-ad-video.mp4", "type": "video/mp4" }
+  ]
+}
+]]>
+</AdParameters>
+</Linear>
+</Creative>
+<!--  Fallback MP4 Creative  -->
+<Creative sequence="2" id="fallback1">
+<Linear>
+<Duration>00:00:30</Duration>
+<MediaFiles>
+<MediaFile type="video/mp4" delivery="progressive" width="640" height="360">
+<![CDATA[ https://videosbesads.thebesads.com/video/my-ad-video.mp4 ]]>
+</MediaFile>
+</MediaFiles>
+<VideoClicks>
+<ClickThrough>
+<![CDATA[ https://www.coca-colacompany.com/ ]]>
+</ClickThrough>
+<ClickTracking>
+<![CDATA[ https://vast.thebesads.com/track/click ]]>
+</ClickTracking>
+</VideoClicks>
+</Linear>
+</Creative>
+<!--  Companion Banner  -->
+<Creative id="companion1">
+<CompanionAds>
+<Companion width="300" height="250">
+<StaticResource creativeType="image/jpeg">
+<![CDATA[ https://vast.thebesads.com/images/side-banner.jpg ]]>
+</StaticResource>
+<CompanionClickThrough>
+<![CDATA[ https://www.coca-colacompany.com/ ]]>
+</CompanionClickThrough>
+</Companion>
+</CompanionAds>
+</Creative>
+</Creatives>
+</InLine>
+</Ad>
 </VAST>
